@@ -79,7 +79,7 @@ const VBar = styled('span')(({ theme }) => {
 const LinkHash = styled('span')(({ theme }) => {
   return {
     span: {
-      fontSize: '10px',
+      fontSize: '1rem',
       color: theme.palette.text.primary,
       padding: '0.2rem 0.8rem',
       borderRadius: '1rem',
