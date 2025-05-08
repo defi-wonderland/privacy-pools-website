@@ -262,6 +262,10 @@ export const getPoolAccountsFromAccount = async (account: PrivacyPoolAccount, ch
         );
       }
 
+      if (updatedPoolAccount.balance === BigInt(0) && updatedPoolAccount.reviewStatus === ReviewStatus.APPROVED) {
+        updatedPoolAccount.reviewStatus = ReviewStatus.WITHDRAWN;
+      }
+
       poolAccounts.push(updatedPoolAccount);
       idx++;
     }
