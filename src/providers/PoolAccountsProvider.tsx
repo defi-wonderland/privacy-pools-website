@@ -8,6 +8,7 @@ import { useChainContext } from '~/hooks';
 import {
   CommitmentProof,
   EventType,
+  FeeCommitment,
   HistoryData,
   PoolAccount,
   RagequitProof,
@@ -44,6 +45,8 @@ type ContextType = {
   setTransactionHash: (val: Hex) => void;
   actionType: EventType | undefined;
   setActionType: (val?: EventType) => void;
+  feeCommitment: FeeCommitment | null;
+  setFeeCommitment: (val: FeeCommitment | null) => void;
   resetTransactionState: () => void;
   isAssetConfigLoading: boolean;
 };
@@ -70,6 +73,7 @@ export const PoolAccountsProvider = ({ children }: Props) => {
   const [proof, setProof] = useState<ContextType['proof']>(null);
   const [withdrawal, setWithdrawal] = useState<Withdrawal | null>(null);
   const [newSecretKeys, setNewSecretKeys] = useState<{ secret: bigint; nullifier: bigint } | null>(null);
+  const [feeCommitment, setFeeCommitment] = useState<FeeCommitment | null>(null);
 
   const [selectedHistoryData, setSelectedHistoryData] = useState<HistoryData[number]>();
 
@@ -84,6 +88,7 @@ export const PoolAccountsProvider = ({ children }: Props) => {
     setTransactionHash(undefined);
     setActionType(undefined);
     setPoolAccount(undefined);
+    setFeeCommitment(null);
   };
 
   const { data: assetConfigs, isLoading: isAssetConfigLoading } = useQuery({
@@ -134,6 +139,8 @@ export const PoolAccountsProvider = ({ children }: Props) => {
         setTransactionHash,
         actionType,
         setActionType,
+        feeCommitment,
+        setFeeCommitment,
         resetTransactionState,
         vettingFeeBPS: assetConfigs?.vettingFeeBPS ?? BigInt(0),
         minimumDepositAmount: assetConfigs?.minimumDepositAmount ?? BigInt(0),

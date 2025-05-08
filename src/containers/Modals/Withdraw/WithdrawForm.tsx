@@ -1,50 +1,46 @@
 'use client';
 
-import { ChangeEvent, FocusEventHandler, useMemo, useState } from 'react';
+import { ChangeEvent, FocusEventHandler, useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
-import {
-  Box,
-  Button,
-  FormControl,
-  FormHelperText,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Stack,
-  styled,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { Address, formatEther, formatUnits, getAddress, parseEther, parseUnits } from 'viem';
+import { Box, Button, CircularProgress, FormControl, SelectChangeEvent, Stack, styled, TextField } from '@mui/material';
+import { Address, formatEther, formatUnits, getAddress, isAddress, parseEther } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
+import { CoinIcon, ImageContainer, InputContainer, ModalContainer, ModalTitle } from '~/containers/Modals/Deposit';
 import {
-  AmountInput,
-  CoinIcon,
-  ImageContainer,
-  InputContainer,
-  MaxButton,
-  ModalContainer,
-  ModalTitle,
-} from '~/containers/Modals/Deposit';
-import { useChainContext, useExternalServices, useAccountContext, useModal, usePoolAccountsContext } from '~/hooks';
-import { ModalType, PoolAccount, ReviewStatus } from '~/types';
+  useChainContext,
+  useExternalServices,
+  useAccountContext,
+  useModal,
+  usePoolAccountsContext,
+  useNotifications,
+  useRequestQuote,
+} from '~/hooks';
+import { ModalType } from '~/types';
 import { getUsdBalance } from '~/utils';
 import { LinksSection } from '../LinksSection';
+import { AmountInputSection } from './AmountInputSection';
+import { PoolAccountSelectorSection } from './PoolAccountSelectorSection';
+import { RelayerSelectorSection } from './RelayerSelectorSection';
+
+const BPS_DIVISOR = 10000n;
 
 export const WithdrawForm = () => {
   const { setModalOpen } = useModal();
+  const { addNotification } = useNotifications();
+
   const {
-    chain: { symbol, decimals, image },
-    price: currentPrice,
+    chain: { symbol, decimals, image, poolInfo },
     chainId,
-    setSelectedRelayer,
     selectedRelayer,
-    relayers,
+    setSelectedRelayer,
     relayersData,
+    price: currentPrice,
   } = useChainContext();
 
   const { relayerData } = useExternalServices();
-  const { amount, setAmount, target, setTarget, poolAccount, setPoolAccount } = usePoolAccountsContext();
+  const { getQuote, isQuoteLoading: originalIsLoading, quoteError: originalQuoteError } = relayerData;
+  const { amount, setAmount, target, setTarget, poolAccount, setPoolAccount, setFeeCommitment } =
+    usePoolAccountsContext();
   const { poolAccounts } = useAccountContext();
 
   const filteredPoolAccounts = poolAccounts.filter((pa) => pa.balance > 0n);
@@ -53,61 +49,128 @@ export const WithdrawForm = () => {
 
   const balanceFormatted = formatEther(poolAccount?.balance ?? BigInt(0));
   const balanceUSD = getUsdBalance(currentPrice, balanceFormatted, decimals);
-  const isValidAmount = parseEther(amount) <= BigInt(poolAccount?.balance ?? 0);
 
-  const relayerFee = relayerData.fees ? (BigInt(relayerData.fees) * parseUnits(amount, decimals)) / 100n / 100n : '0';
-  const feeFormatted = formatEther(BigInt(relayerFee));
-  const feeUSD = getUsdBalance(currentPrice, feeFormatted, decimals);
-  const feeText = `Fee ${feeFormatted} ${symbol} ~ ${feeUSD} USD`;
+  const amountBN = useMemo(() => {
+    try {
+      return parseEther(amount);
+    } catch {
+      return 0n;
+    }
+  }, [amount]);
 
-  const amountHasError = !Number(amount);
+  const isValidAmount = useMemo(() => {
+    return amountBN > 0n && amountBN <= (poolAccount?.balance ?? 0n);
+  }, [amountBN, poolAccount?.balance]);
 
-  const isWithdrawDisabled =
-    amountHasError || !relayerData.relayerAddress || !target || targetAddressHasError || !isValidAmount;
+  const isRecipientAddressValid = useMemo(() => {
+    return target !== '' && isAddress(target) && !targetAddressHasError;
+  }, [target, targetAddressHasError]);
+
+  const isFormValid = useMemo(() => {
+    return isValidAmount && isRecipientAddressValid && !!selectedRelayer?.url && !!poolInfo?.assetAddress;
+  }, [isValidAmount, isRecipientAddressValid, selectedRelayer, poolInfo?.assetAddress]);
+
+  const { quoteCommitment, feeBPS, isQuoteValid, countdown, isQuoteLoading, quoteError } = useRequestQuote({
+    getQuote,
+    isQuoteLoading: originalIsLoading,
+    quoteError: originalQuoteError,
+    chainId,
+    amountBN,
+    assetAddress: poolInfo?.assetAddress,
+    recipient: target,
+    isValidAmount,
+    isRecipientAddressValid,
+    isRelayerSelected: !!selectedRelayer?.url,
+    addNotification,
+  });
+
+  const feeText = useMemo(() => {
+    if (isQuoteLoading && !feeBPS) {
+      return 'Fetching fee quote...';
+    }
+    if (quoteError && !feeBPS) {
+      return 'Error fetching fee';
+    }
+    if (feeBPS === null) {
+      return '';
+    }
+
+    const feeFromQuote = (BigInt(feeBPS) * amountBN) / BPS_DIVISOR;
+    const formatted = formatUnits(feeFromQuote, decimals);
+    const usd = getUsdBalance(currentPrice, formatted, decimals);
+    const text = `Fee ${formatted} ${symbol} ~ ${usd} USD`;
+    return text;
+  }, [isQuoteLoading, quoteError, feeBPS, amountBN, decimals, currentPrice, symbol]);
+
+  const isWithdrawDisabled = useMemo(() => {
+    return !isFormValid || !isQuoteValid || isQuoteLoading;
+  }, [isFormValid, isQuoteValid, isQuoteLoading]);
 
   const errorMessage = useMemo(() => {
-    if (!amount) return '';
-    if (!isValidAmount) return `Maximum withdraw amount is ${formatEther(poolAccount?.balance ?? 0n)} ${symbol}`;
-    if (amountHasError) return 'Withdrawal amount must be greater than 0';
+    if (amount && amountBN <= 0n) return 'Withdrawal amount must be greater than 0';
+    if (amount && !isValidAmount && amountBN > (poolAccount?.balance ?? 0n))
+      return `Maximum withdraw amount is ${formatEther(poolAccount?.balance ?? 0n)} ${symbol}`;
     return '';
-  }, [amount, isValidAmount, poolAccount?.balance, symbol, amountHasError]);
+  }, [amount, amountBN, isValidAmount, poolAccount?.balance, symbol]);
 
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const normalizedInput = e.target.value.replace(/[^0-9.]+/g, '').replace(/(\..*)\..*/g, '$1');
-    setAmount(normalizedInput.slice(0, 6));
+    setAmount(
+      e.target.value
+        .replace(/[^0-9.]+/g, '')
+        .replace(/(\..*)\..*/g, '$1')
+        .slice(0, 20),
+    );
   };
 
   const handlePoolAccountChange = (e: SelectChangeEvent<unknown>) => {
-    setPoolAccount(filteredPoolAccounts.find((pa) => pa.name === e.target.value) as PoolAccount);
+    const selectedAccount = filteredPoolAccounts.find((pa) => pa.name.toString() === e.target.value);
+    if (selectedAccount) {
+      setPoolAccount(selectedAccount);
+      setAmount('');
+    }
   };
 
   const handleTargetAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
     setTarget(e.target.value as Address);
+    if (targetAddressHasError) {
+      setTargetAddressHasError(false);
+    }
   };
 
   const handleTargetAddressBlur: FocusEventHandler<HTMLInputElement> = (e) => {
-    if (!e.target.value) return;
-
-    try {
-      getAddress(e.target.value);
+    const value = e.target.value;
+    if (!value) {
       setTargetAddressHasError(false);
-    } catch (err) {
-      console.error(err);
+      return;
+    }
+    try {
+      getAddress(value);
+      setTargetAddressHasError(false);
+    } catch {
       setTargetAddressHasError(true);
     }
   };
 
   const handleRelayerChange = (e: SelectChangeEvent<unknown>) => {
-    setSelectedRelayer(relayers.find((relayer) => relayer.url === e.target.value) as { name: string; url: string });
+    const newRelayerUrl = e.target.value as string;
+    const newRelayer = relayersData.find((r) => r.url === newRelayerUrl);
+    setSelectedRelayer(newRelayer ? { name: newRelayer.name, url: newRelayer.url } : undefined);
   };
 
-  const handleUseMax = () => {
-    setAmount(formatEther(poolAccount?.balance ?? 0n));
-  };
+  const handleUseMax = useCallback(() => {
+    if (poolAccount?.balance) {
+      setAmount(formatEther(poolAccount.balance));
+    }
+  }, [poolAccount, setAmount]);
 
-  const handleWithdraw = () => {
-    setModalOpen(ModalType.GENERATE_ZK_PROOF);
-  };
+  const handleWithdraw = useCallback(() => {
+    if (quoteCommitment && countdown > 0) {
+      setFeeCommitment(quoteCommitment);
+      setModalOpen(ModalType.GENERATE_ZK_PROOF);
+    } else {
+      addNotification('error', 'Cannot proceed: relayer quote is invalid or expired.');
+    }
+  }, [quoteCommitment, countdown, setFeeCommitment, setModalOpen, addNotification]);
 
   const chainIcon = useMemo(() => {
     if (chainId === sepolia.id || chainId === mainnet.id) {
@@ -127,118 +190,51 @@ export const WithdrawForm = () => {
       <DecorativeCircle />
 
       <InputContainer>
-        <Stack alignItems='center' width='100%'>
-          <Stack direction='row' alignItems='center' width='100%' flexDirection='column'>
-            <Stack direction='row' gap='0.8rem' alignItems='center' width='100%'>
-              {chainIcon}
-
-              <FormControl className='amount-input'>
-                <AmountInput
-                  id='amount'
-                  variant='outlined'
-                  placeholder='0'
-                  value={amount}
-                  error={amountHasError}
-                  onChange={handleAmountChange}
-                  data-testid='withdrawal-amount-input'
-                />
-                <MaxButton onClick={handleUseMax} disableElevation variant='text'>
-                  Use Max
-                </MaxButton>
-              </FormControl>
-            </Stack>
-            {isWithdrawDisabled && <FormHelperText error>{errorMessage}</FormHelperText>}
-          </Stack>
-        </Stack>
-
-        <Stack gap='0' alignItems='center'>
-          <Typography variant='body2'>
-            <b>{`${balanceFormatted} ${symbol}`}</b> in PA-{poolAccount?.name}
-          </Typography>
-          <Typography variant='caption' color='textDisabled'>
-            ~ {balanceUSD} USD
-          </Typography>
-        </Stack>
+        <AmountInputSection
+          amount={amount}
+          errorMessage={errorMessage}
+          handleAmountChange={handleAmountChange}
+          handleUseMax={handleUseMax}
+          balanceFormatted={balanceFormatted}
+          symbol={symbol}
+          poolAccountName={poolAccount?.name?.toString()}
+          balanceUSD={balanceUSD}
+          chainIcon={chainIcon}
+        />
       </InputContainer>
 
       <Stack gap={2} width='100%' maxWidth='32.8rem' zIndex='1'>
-        {/* TargetAddress Input */}
         <FormControl fullWidth>
           <TextField
             id='target-address'
             placeholder='Target Address'
             value={target}
-            error={targetAddressHasError}
+            error={targetAddressHasError || (target !== '' && !isAddress(target))}
             onChange={handleTargetAddressChange}
             onBlur={handleTargetAddressBlur}
-            helperText={targetAddressHasError ? 'Invalid address' : ''}
+            helperText={targetAddressHasError || (target !== '' && !isAddress(target)) ? 'Invalid address' : ''}
             data-testid='target-address-input'
           />
         </FormControl>
 
-        {/* PoolAccount Selector */}
-        <FormControl fullWidth>
-          <StyledSelect
-            id='pool-account-select'
-            labelId='pool-account-select-label'
-            value={poolAccount?.name}
-            onChange={handlePoolAccountChange}
-            defaultValue={poolAccount?.name}
-          >
-            {filteredPoolAccounts.map((value) => {
-              if (value.reviewStatus === ReviewStatus.APPROVED) {
-                return (
-                  <SMenuItem key={value.name} value={value.name}>
-                    PA-{value.name}{' '}
-                    <span className='eth-value'>
-                      {formatUnits(value.balance, decimals)} {symbol}
-                    </span>
-                  </SMenuItem>
-                );
-              }
-            })}
-          </StyledSelect>
-        </FormControl>
+        <PoolAccountSelectorSection
+          poolAccountName={poolAccount?.name?.toString()}
+          handlePoolAccountChange={handlePoolAccountChange}
+          filteredPoolAccounts={filteredPoolAccounts}
+          decimals={decimals}
+          symbol={symbol}
+        />
 
-        {/* Relayer Selector */}
-        <Stack gap='1.2rem' width='100%' alignItems='center'>
-          <FormControl fullWidth>
-            <Select
-              id='relayer-select'
-              labelId='relayer-select-label'
-              value={selectedRelayer.url}
-              defaultValue={selectedRelayer.url}
-              onChange={handleRelayerChange}
-              renderValue={(url) => relayersData.find((r) => r.url === url)?.name}
-            >
-              {relayersData
-                .sort((a, b) => (Number(a.fees) ?? 0) - (Number(b.fees) ?? 0))
-                .map(({ name, url, fees, isSelectable }) => (
-                  <RelayMenuItem key={name} value={url} disabled={!isSelectable}>
-                    <Stack direction='row' justifyContent='space-between' alignItems='center' width='100%'>
-                      <Box>
-                        <Typography variant='body2'>{name}</Typography>
-                        {fees !== undefined && (
-                          <Typography variant='caption' color='textSecondary'>
-                            Fee: {Number(fees) / 100}%
-                          </Typography>
-                        )}
-                      </Box>
-                      {!isSelectable && (
-                        <Typography variant='caption' color='error'>
-                          Unavailable
-                        </Typography>
-                      )}
-                    </Stack>
-                  </RelayMenuItem>
-                ))}
-            </Select>
-          </FormControl>
-
-          <Typography variant='body2' color='textSecondary'>
-            {feeText}
-          </Typography>
-        </Stack>
+        <RelayerSelectorSection
+          selectedRelayer={selectedRelayer}
+          relayersData={relayersData}
+          handleRelayerChange={handleRelayerChange}
+          isQuoteLoading={isQuoteLoading}
+          quoteError={quoteError}
+          feeText={feeText}
+          isQuoteValid={isQuoteValid}
+          countdown={countdown}
+        />
       </Stack>
 
       <Button
@@ -246,8 +242,10 @@ export const WithdrawForm = () => {
         onClick={handleWithdraw}
         data-testid='confirm-withdrawal-button'
         sx={{ zIndex: 2 }}
+        startIcon={isQuoteLoading ? <CircularProgress size={16} color='inherit' /> : null}
       >
-        Withdraw
+        {isQuoteLoading && 'Getting Quote...'}
+        {!isQuoteLoading && 'Withdraw'}
       </Button>
 
       <LinksSection />
@@ -266,26 +264,4 @@ const DecorativeCircle = styled(Box)(() => {
     zIndex: 0,
     top: '84%',
   };
-});
-
-const StyledSelect = styled(Select)({
-  '.eth-value': {
-    fontWeight: 700,
-  },
-});
-
-const SMenuItem = styled(MenuItem)({
-  '.eth-value': {
-    fontWeight: 700,
-    marginLeft: '0.8rem',
-  },
-});
-
-const RelayMenuItem = styled(MenuItem)({
-  '&.Mui-disabled': {
-    opacity: 0.5,
-    span: {
-      fontWeight: 700,
-    },
-  },
 });

@@ -12,28 +12,27 @@ export const DataSection = () => {
   const {
     chain: { symbol, decimals, poolInfo },
     price,
-    selectedRelayer,
   } = useChainContext();
-  const { relayerData } = useExternalServices();
+  const { currentSelectedRelayerData } = useExternalServices();
   const { amount, target, actionType, poolAccount, vettingFeeBPS } = usePoolAccountsContext();
   const isDeposit = actionType === EventType.DEPOSIT;
   const aspDataFees = (vettingFeeBPS * parseUnits(amount, decimals)) / 100n / 100n;
   const aspOrRelayer = {
     label: isDeposit ? 'ASP' : 'Relayer',
-    value: isDeposit ? '0xBow ASP' : selectedRelayer.name,
+    value: isDeposit ? '0xBow ASP' : currentSelectedRelayerData?.name,
   };
 
   const fromAddress = isDeposit ? address : '';
   const toAddress = isDeposit ? '' : target;
 
-  const relayerFees = (BigInt(relayerData.fees ?? 0n) * parseUnits(amount, decimals)) / 100n / 100n;
+  const relayerFees = (BigInt(currentSelectedRelayerData?.fees ?? 0n) * parseUnits(amount, decimals)) / 100n / 100n;
 
   const fees = isDeposit ? aspDataFees : relayerFees;
   const feeFormatted = formatDataNumber(fees, decimals);
   const feeUSD = getUsdBalance(price, formatUnits(BigInt(fees ?? 0), decimals), decimals);
   const feeText = `${feeFormatted} ${symbol} (~ ${feeUSD} USD)`;
 
-  const feesCollectorAddress = isDeposit ? poolInfo.entryPointAddress : relayerData.relayerAddress;
+  const feesCollectorAddress = isDeposit ? poolInfo.entryPointAddress : currentSelectedRelayerData?.relayerAddress;
   const feesCollector = `OxBow (${truncateAddress(feesCollectorAddress)})`;
 
   const amountUSD = getUsdBalance(price, amount, decimals);
