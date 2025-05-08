@@ -16,6 +16,7 @@ type ContextType = {
 
   poolAccounts: PoolAccount[];
   poolAccountsByChainScope: Record<string, PoolAccount[]>; // chainId-scope -> poolAccounts
+  poolsByAssetAndChain: PoolAccount[];
   isLoading: boolean;
   hasApprovedDeposit: boolean;
 
@@ -27,8 +28,8 @@ type ContextType = {
   resetGlobalState: () => void;
 
   allPools: number;
-  allEth: bigint;
-  pendingEth: bigint;
+  amountPoolAsset: bigint;
+  pendingAmountPoolAsset: bigint;
 
   historyData: HistoryData;
 
@@ -49,9 +50,7 @@ export const AccountProvider = ({ children }: Props) => {
   const [poolAccountsByChainScope, setPoolAccountsByChainScope] = useState<ContextType['poolAccountsByChainScope']>({});
   const [isLoading, setIsLoading] = useState(false);
   const [hideEmptyPools, setHideEmptyPools] = useState(false);
-  const {
-    chain: { poolInfo },
-  } = useChainContext();
+  const { selectedPoolInfo } = useChainContext();
   const { addNotification } = useNotifications();
   const {
     aspData: { mtLeavesData, fetchDepositsByLabel, refetchMtLeaves, isError: aspError },
@@ -63,26 +62,47 @@ export const AccountProvider = ({ children }: Props) => {
     setPoolAccounts,
     setPoolAccountsByChainScope,
     accountServiceRef,
-    poolInfo.chainId,
+    selectedPoolInfo.chainId,
   );
 
   const allPools = poolAccounts.length;
-  const allEth = poolAccounts.reduce((acc, curr) => acc + BigInt(curr.balance), BigInt(0));
-  const pendingEth = poolAccounts.reduce(
-    (acc, curr) => (curr.reviewStatus === ReviewStatus.PENDING ? acc + BigInt(curr.balance) : acc),
-    BigInt(0),
-  );
 
-  const hasApprovedDeposit = useMemo(() => {
-    const approvedAccount = poolAccounts.find(
-      (account) => account.reviewStatus === ReviewStatus.APPROVED && account.balance !== 0n,
+  // Sum of all the pool assets with the same scope
+  const amountPoolAsset = poolAccounts
+    .filter((pa) => pa.scope === selectedPoolInfo.scope)
+    .reduce((acc, curr) => acc + BigInt(curr.balance), BigInt(0));
+
+  // Sum of all the pending pool assets with the same scope
+  const pendingAmountPoolAsset = poolAccounts
+    .filter((pa) => pa.scope === selectedPoolInfo.scope)
+    .reduce((acc, curr) => (curr.reviewStatus === ReviewStatus.PENDING ? acc + BigInt(curr.balance) : acc), BigInt(0));
+
+  // Calculate the first approved account with a balance for the current scope
+  const firstApprovedAccount = useMemo(() => {
+    return poolAccounts.find(
+      (account) =>
+        account.reviewStatus === ReviewStatus.APPROVED &&
+        account.balance !== 0n &&
+        account.scope === selectedPoolInfo.scope,
     );
-    if (approvedAccount && !poolAccount) {
-      setPoolAccount(approvedAccount); // set default pool account
-    }
+  }, [poolAccounts, selectedPoolInfo.scope]);
 
-    return !!approvedAccount;
-  }, [poolAccounts, poolAccount, setPoolAccount]);
+  // Determine if there's any approved deposit
+  const hasApprovedDeposit = useMemo(() => {
+    return !!firstApprovedAccount;
+  }, [firstApprovedAccount]);
+
+  // Effect to set the default pool account when appropriate
+  useEffect(() => {
+    // Set the first approved account as the default if none is selected yet
+    if (firstApprovedAccount && !poolAccount) {
+      setPoolAccount(firstApprovedAccount);
+    }
+  }, [firstApprovedAccount, poolAccount, setPoolAccount]);
+
+  const poolsByAssetAndChain = useMemo(() => {
+    return poolAccountsByChainScope[`${selectedPoolInfo.chainId}-${selectedPoolInfo.scope}`];
+  }, [poolAccountsByChainScope, selectedPoolInfo.chainId, selectedPoolInfo.scope]);
 
   // Updates the review status and timestamp of deposit entries in pool accounts based on deposit data from ASP
   const processDeposits = useCallback(
@@ -164,14 +184,14 @@ export const AccountProvider = ({ children }: Props) => {
 
     const { poolAccounts, poolAccountsByChainScope } = await getPoolAccountsFromAccount(
       accountServiceRef.current.account,
-      poolInfo.chainId,
+      selectedPoolInfo.chainId,
     );
 
     setPoolAccountsByChainScope(poolAccountsByChainScope);
     setPoolAccounts(poolAccounts);
 
     fetchAndProcessDeposits(poolAccounts);
-  }, [fetchAndProcessDeposits, poolInfo.chainId]);
+  }, [fetchAndProcessDeposits, selectedPoolInfo.chainId]);
 
   const handleAddPoolAccount = useCallback(
     (...params: Parameters<typeof addPoolAccount>) => {
@@ -220,9 +240,10 @@ export const AccountProvider = ({ children }: Props) => {
 
   useEffect(() => {
     if (!accountServiceRef.current) return; // Not initialized yet
-    if (poolInfo.chainId === poolAccounts[0]?.chainId && poolInfo.scope === poolAccounts[0]?.scope) return;
+    if (selectedPoolInfo.chainId === poolAccounts[0]?.chainId && selectedPoolInfo.scope === poolAccounts[0]?.scope)
+      return;
 
-    const newPoolAccounts = poolAccountsByChainScope[`${poolInfo.chainId}-${poolInfo.scope}`];
+    const newPoolAccounts = poolAccountsByChainScope[`${selectedPoolInfo.chainId}-${selectedPoolInfo.scope}`];
     if (!!newPoolAccounts) {
       setPoolAccounts(newPoolAccounts);
       fetchAndProcessDeposits(newPoolAccounts);
@@ -231,7 +252,13 @@ export const AccountProvider = ({ children }: Props) => {
         setPoolAccounts([]);
       }
     }
-  }, [poolInfo.chainId, poolInfo.scope, poolAccounts, poolAccountsByChainScope, fetchAndProcessDeposits]);
+  }, [
+    selectedPoolInfo.chainId,
+    selectedPoolInfo.scope,
+    poolAccounts,
+    poolAccountsByChainScope,
+    fetchAndProcessDeposits,
+  ]);
 
   useEffect(() => {
     if (aspError) {
@@ -250,6 +277,7 @@ export const AccountProvider = ({ children }: Props) => {
         amount: pa.deposit.value,
         timestamp: Number(pa.deposit.timestamp),
         label: pa.label,
+        scope: pa.scope,
       });
 
       for (const [idx, child] of pa.children.entries()) {
@@ -260,11 +288,12 @@ export const AccountProvider = ({ children }: Props) => {
           amount: (idx === 0 ? pa.deposit.value : pa.children[idx - 1].value) - child.value,
           timestamp: Number(child.timestamp),
           label: child.label,
+          scope: pa.scope,
         });
       }
     }
 
-    for (const { ragequit } of poolAccounts) {
+    for (const { ragequit, scope } of poolAccounts) {
       if (!ragequit?.transactionHash) continue;
       history.push({
         type: EventType.EXIT,
@@ -273,6 +302,7 @@ export const AccountProvider = ({ children }: Props) => {
         amount: ragequit?.value,
         timestamp: Number(ragequit?.timestamp),
         label: ragequit?.label,
+        scope: scope,
       });
     }
 
@@ -284,11 +314,12 @@ export const AccountProvider = ({ children }: Props) => {
       value={{
         poolAccounts,
         poolAccountsByChainScope,
+        poolsByAssetAndChain,
         isLoading,
         hasApprovedDeposit,
         allPools,
-        allEth,
-        pendingEth,
+        amountPoolAsset,
+        pendingAmountPoolAsset,
         seed,
         accountService: accountServiceRef.current,
         setSeed,

@@ -7,7 +7,7 @@ import { useExternalServices, useChainContext } from '~/hooks';
 
 export const GlobalPool = () => {
   const {
-    chain: { symbol },
+    balanceBN: { symbol },
   } = useChainContext();
   const {
     aspData: { poolsData },

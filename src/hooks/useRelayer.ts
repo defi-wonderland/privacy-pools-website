@@ -16,13 +16,11 @@ export const useRelayer = (
   relayerAddress: FeesResponse['feeReceiverAddress'] | undefined;
   relay: (input: RelayRequestBody) => Promise<RelayerResponse>;
 } => {
-  const {
-    chain: { poolInfo },
-  } = useChainContext();
+  const { selectedPoolInfo } = useChainContext();
 
   const feesQuery = useQuery({
     queryKey: ['relayerFees', relayerUrl, chainId],
-    queryFn: () => relayerClient.fetchFees(relayerUrl, chainId, poolInfo.assetAddress),
+    queryFn: () => relayerClient.fetchFees(relayerUrl, chainId, selectedPoolInfo.assetAddress),
   });
 
   const relay = useCallback((input: RelayRequestBody) => relayerClient.relay(relayerUrl, input), [relayerUrl]);

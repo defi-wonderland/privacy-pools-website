@@ -9,7 +9,8 @@ import { formatDataNumber, formatTimestamp, getUsdBalance, truncateAddress } fro
 
 export const DataSection = () => {
   const {
-    chain: { symbol, decimals, poolInfo },
+    chain: { symbol, decimals },
+    selectedPoolInfo,
     price,
   } = useChainContext();
   const { vettingFeeBPS, selectedHistoryData } = usePoolAccountsContext();
@@ -38,7 +39,7 @@ export const DataSection = () => {
   const feeUSD = getUsdBalance(price, formatEther(fees), decimals);
   const feeText = `${feeFormatted} ${symbol} (~ ${feeUSD} USD)`;
 
-  const feesCollectorAddress = isDeposit ? poolInfo.entryPointAddress : relayerData.relayerAddress;
+  const feesCollectorAddress = isDeposit ? selectedPoolInfo.entryPointAddress : relayerData.relayerAddress;
   const feesCollector = `OxBow (${truncateAddress(feesCollectorAddress)})`;
 
   const totalText = isDeposit ? formatEther(originalAmount) : formatEther(amountInWei);

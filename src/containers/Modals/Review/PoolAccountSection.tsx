@@ -5,7 +5,7 @@ import { EventType } from '~/types';
 
 export const PoolAccountSection = () => {
   const {
-    chain: { symbol },
+    selectedPoolInfo: { asset },
   } = useChainContext();
   const { amount, poolAccount, actionType, vettingFeeBPS } = usePoolAccountsContext();
   const { poolAccounts } = useAccountContext();
@@ -24,7 +24,7 @@ export const PoolAccountSection = () => {
         <Value variant='body2'>{poolAccountName}</Value>
       </Row>
       <TotalValue variant='body2'>
-        {formattedTotalAmount} {symbol}
+        {formattedTotalAmount} {asset}
       </TotalValue>
     </Container>
   );

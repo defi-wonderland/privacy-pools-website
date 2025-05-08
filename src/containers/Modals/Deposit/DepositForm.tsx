@@ -30,8 +30,8 @@ export const DepositForm = () => {
   const { setModalOpen } = useModal();
   const [asp, setAsp] = useState(ASP_OPTIONS[0]);
   const {
-    chain: { symbol, decimals, image },
-    balanceBN,
+    chain: { image, symbol: nativeSymbol },
+    balanceBN: { value: balance, symbol, formatted: balanceFormatted, decimals },
     price: currentPrice,
     maxDeposit,
     chainId,
@@ -39,13 +39,13 @@ export const DepositForm = () => {
   const { amount, setAmount, minimumDepositAmount, vettingFeeBPS, isAssetConfigLoading } = usePoolAccountsContext();
   const [inputAmount, setInputAmount] = useState('');
 
-  const balanceUI = formatDataNumber(balanceBN, decimals, 3, false, true, false);
-  const balanceFormatted = formatEther(BigInt(balanceBN));
+  const balanceUI = formatDataNumber(balance, decimals, 3, false, true, false);
+  // const balanceFormatted = formatEther(BigInt(balanceBN));
 
   const fee = calculateAspFee(parseEther(amount), vettingFeeBPS);
   const feeFormatted = formatDataNumber(fee, decimals);
   const feeUSD = getUsdBalance(currentPrice, formatEther(fee), decimals);
-  const feeText = `Fee ${feeFormatted} ${symbol} ~ ${feeUSD} USD`;
+  const feeText = `Fee ${feeFormatted} ${nativeSymbol} ~ ${feeUSD} USD`;
 
   const isEnoughBalance = parseEther(amount) <= parseEther(balanceFormatted);
   const isValidAmount = parseEther(amount) >= minimumDepositAmount;

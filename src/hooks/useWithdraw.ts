@@ -47,10 +47,7 @@ export const useWithdraw = () => {
     setNewSecretKeys,
     setTransactionHash,
   } = usePoolAccountsContext();
-  const {
-    chain: { poolInfo },
-    chainId,
-  } = useChainContext();
+  const { chainId, selectedPoolInfo } = useChainContext();
   const { accountService, addWithdrawal } = useAccountContext();
   const publicClient = usePublicClient({ chainId });
 
@@ -76,12 +73,12 @@ export const useWithdraw = () => {
     try {
       const newWithdrawal = prepareWithdrawRequest(
         getAddress(target),
-        getAddress(poolInfo.entryPointAddress),
+        getAddress(selectedPoolInfo.entryPointAddress),
         getAddress(relayerData.relayerAddress),
         relayerData.fees,
       );
 
-      const poolScope = await getScope(publicClient, poolInfo.address);
+      const poolScope = await getScope(publicClient, selectedPoolInfo.address);
       const stateMerkleProof = await getMerkleProof(stateLeaves?.map(BigInt) as bigint[], commitment.hash);
       const aspMerkleProof = await getMerkleProof(aspLeaves?.map(BigInt), commitment.label);
       const context = await getContext(newWithdrawal, poolScope as Hash);
@@ -135,7 +132,7 @@ export const useWithdraw = () => {
 
       await switchChainAsync({ chainId });
 
-      const poolScope = await getScope(publicClient, poolInfo.address);
+      const poolScope = await getScope(publicClient, selectedPoolInfo.address);
 
       try {
         setIsClosable(false);

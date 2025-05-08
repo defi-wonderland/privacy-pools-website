@@ -11,6 +11,19 @@ const testnetChains: readonly [Chain, ...Chain[]] = [sepolia];
 
 export const whitelistedChains = IS_TESTNET ? testnetChains : mainnetChains;
 
+export type ChainAssets = 'ETH' | 'WETH';
+
+export interface PoolInfo {
+  chainId: number;
+  address: Address;
+  scope: bigint;
+  deploymentBlock: bigint;
+  entryPointAddress: Address;
+  assetAddress: Address;
+  maxDeposit: bigint;
+  asset: ChainAssets;
+}
+
 export interface ChainData {
   [chainId: number]: {
     name: string;
@@ -24,15 +37,7 @@ export interface ChainData {
       name: string;
       url: string;
     }[];
-    poolInfo: {
-      chainId: number;
-      address: Address;
-      scope: bigint;
-      deploymentBlock: bigint;
-      entryPointAddress: Address;
-      assetAddress: Address;
-      maxDeposit: bigint;
-    };
+    poolInfo: PoolInfo[];
   };
 }
 
@@ -47,15 +52,28 @@ const mainnetChainData: ChainData = {
     relayers: [{ name: 'Freedom Relay', url: 'https://www.freedomrelay.io' }],
     rpcUrl: `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
     aspUrl: ASP_ENDPOINT,
-    poolInfo: {
-      chainId: mainnet.id,
-      address: '0xF241d57C6DebAe225c0F2e6eA1529373C9A9C9fB',
-      assetAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-      scope: 4916574638117198869413701114161172350986437430914933850166949084132905299523n,
-      deploymentBlock: 22153707n,
-      entryPointAddress: '0x6818809EefCe719E480a7526D76bD3e561526b46',
-      maxDeposit: parseEther('1'),
-    },
+    poolInfo: [
+      {
+        chainId: mainnet.id,
+        address: '0xF241d57C6DebAe225c0F2e6eA1529373C9A9C9fB',
+        assetAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        scope: 4916574638117198869413701114161172350986437430914933850166949084132905299523n,
+        deploymentBlock: 22153707n,
+        entryPointAddress: '0x6818809EefCe719E480a7526D76bD3e561526b46',
+        maxDeposit: parseEther('1'),
+        asset: 'ETH',
+      },
+      {
+        chainId: mainnet.id,
+        address: '0xF241d57C6DebAe225c0F2e6eA1529373C9A9C9fB',
+        assetAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        scope: 4916574638117198869413701114161172350986437430914933850166949084132905299523n,
+        deploymentBlock: 22153707n,
+        entryPointAddress: '0x6818809EefCe719E480a7526D76bD3e561526b46',
+        maxDeposit: parseEther('100'),
+        asset: 'WETH',
+      },
+    ],
   },
 };
 
@@ -73,15 +91,28 @@ const testnetChainData: ChainData = {
       { name: 'Testnet Relay', url: 'https://testnet-relayer.privacypools.com' },
       { name: 'Freedom Relay', url: 'https://www.freedomrelay.io' },
     ],
-    poolInfo: {
-      chainId: sepolia.id,
-      assetAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-      address: '0x01ef71F4d4b2b5E5738812fE28EC11B92Af4e79c',
-      scope: 841291896705749778591013763175255425092642324096338756899790031869355051990n,
-      deploymentBlock: 7930633n,
-      entryPointAddress: '0xE835EDFA2F78D2d9e7DA9058c30Fc7Ab7c22653e',
-      maxDeposit: parseEther('1'),
-    },
+    poolInfo: [
+      {
+        chainId: sepolia.id,
+        assetAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        address: '0x4091b6aF3CB2460a04A58Ce775140221F8B6391B',
+        scope: 6276514527914124858593577781760940935800899619504017018988536900856718641423n,
+        deploymentBlock: 8042931n,
+        entryPointAddress: '0x5fffC32b925E2E2f5931905EE785568D98B641d1',
+        maxDeposit: parseEther('1'),
+        asset: 'ETH',
+      },
+      {
+        chainId: sepolia.id,
+        assetAddress: '0x7b79995e5f793a07bc00c21412e50ecae098e7f9',
+        address: '0x7f04ef49cabc092f7e4d912fad2a2cf32cc66b1a',
+        scope: 4749744745128116739741514172614423557653210085983118945736246609179715050509n,
+        deploymentBlock: 8214673n,
+        entryPointAddress: '0x5fffC32b925E2E2f5931905EE785568D98B641d1',
+        maxDeposit: parseEther('100'),
+        asset: 'WETH',
+      },
+    ],
   },
 };
 

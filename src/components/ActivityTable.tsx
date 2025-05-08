@@ -32,7 +32,7 @@ export const ActivityTable = ({
 }) => {
   const { setModalOpen } = useModal();
   const {
-    chain: { decimals, symbol },
+    balanceBN: { decimals, symbol },
   } = useChainContext();
   const { poolAccounts } = useAccountContext();
   const { setSelectedHistoryData } = usePoolAccountsContext();

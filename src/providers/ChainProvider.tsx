@@ -4,14 +4,14 @@ import { createContext, useEffect, useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { parseEther } from 'viem';
 import { useAccount, useBalance } from 'wagmi';
-import { ChainData, chainData, whitelistedChains } from '~/config';
+import { ChainData, chainData, ChainAssets, whitelistedChains, PoolInfo } from '~/config';
 import { useNotifications } from '~/hooks';
 import { fetchTokenPrice, relayerClient } from '~/utils';
 
 type ContextType = {
   chain: ChainData[number];
   chainId: number;
-  balanceBN: bigint;
+  balanceBN: { value: bigint; symbol: string; formatted: string; decimals: number };
   balanceInPoolBN: string;
   setChainId: (value: number) => void;
   setBalanceInPool: (val: string) => void;
@@ -29,6 +29,9 @@ type ContextType = {
   }[];
   isLoadingRelayers: boolean;
   hasSomeRelayerAvailable: boolean;
+  selectedAsset: ChainAssets;
+  setSelectedAsset: (value: ChainAssets) => void;
+  selectedPoolInfo: PoolInfo;
 };
 
 interface Props {
@@ -43,10 +46,34 @@ export const ChainProvider = ({ children }: Props) => {
   const { addNotification } = useNotifications();
   const [balanceInPoolBN, setBalanceInPool] = useState<string>(parseEther('100').toString());
   const [price, setPrice] = useState<number>(0);
-  const { data } = useBalance({ address, chainId });
   const [selectedRelayer, setSelectedRelayer] = useState<{ name: string; url: string }>(chainData[chainId].relayers[0]);
+  const [selectedAsset, setSelectedAsset] = useState<ChainAssets>('ETH');
 
   const chain = useMemo(() => chainData[chainId], [chainId]);
+
+  // Find the pool info based on the selected asset
+  const selectedPoolInfo = useMemo(() => {
+    return chain.poolInfo.find((pool) => pool.asset === selectedAsset) ?? chain.poolInfo[0];
+  }, [chain.poolInfo, selectedAsset]);
+
+  // User balance based on the selected asset
+  const { data: userBalance } = useBalance({
+    address,
+    chainId,
+    token: selectedAsset === 'ETH' ? undefined : selectedPoolInfo.assetAddress,
+  });
+
+  const balanceBN = useMemo(() => {
+    if (userBalance) {
+      return userBalance;
+    }
+    return {
+      decimals: 18,
+      formatted: '0',
+      symbol: selectedAsset,
+      value: 0n,
+    };
+  }, [userBalance, selectedAsset]);
 
   useEffect(() => {
     if (chain) {
@@ -63,8 +90,14 @@ export const ChainProvider = ({ children }: Props) => {
 
   const feesQueries = useQueries({
     queries: chain.relayers.map((relayer) => ({
-      queryKey: ['relayerFees', relayer.url, chainId, chain.poolInfo.assetAddress],
-      queryFn: () => relayerClient.fetchFees(relayer.url, chainId, chain.poolInfo.assetAddress),
+      queryKey: ['relayerFees', relayer.url, chainId, selectedPoolInfo?.assetAddress],
+      queryFn: () => {
+        if (!selectedPoolInfo?.assetAddress) {
+          return Promise.reject(new Error('Asset address not found for the selected pool'));
+        }
+        return relayerClient.fetchFees(relayer.url, chainId, selectedPoolInfo.assetAddress);
+      },
+      enabled: !!selectedPoolInfo?.assetAddress,
     })),
   });
 
@@ -97,11 +130,11 @@ export const ChainProvider = ({ children }: Props) => {
       value={{
         setChainId,
         chain,
-        balanceBN: data?.value || 0n,
+        balanceBN,
         balanceInPoolBN,
         setBalanceInPool,
         price,
-        maxDeposit: chain.poolInfo.maxDeposit.toString(),
+        maxDeposit: selectedPoolInfo?.maxDeposit.toString() ?? '0',
         chainId,
         selectedRelayer,
         setSelectedRelayer,
@@ -109,6 +142,9 @@ export const ChainProvider = ({ children }: Props) => {
         relayersData,
         isLoadingRelayers: feesQueries.some((query) => query.isLoading),
         hasSomeRelayerAvailable,
+        selectedAsset,
+        setSelectedAsset,
+        selectedPoolInfo,
       }}
     >
       {children}

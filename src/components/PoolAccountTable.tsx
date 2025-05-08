@@ -28,7 +28,7 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
   const { PENDING_STATUS_MESSAGE: statusMessage } = getConstants();
   const { setActionType, setPoolAccount, setAmount, setTarget } = usePoolAccountsContext();
   const {
-    chain: { decimals, symbol },
+    balanceBN: { symbol, decimals },
   } = useChainContext();
   const { address } = useAccount();
   const { setModalOpen } = useModal();
@@ -117,7 +117,7 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
 
             <TableBody>
               {records?.map((row) => (
-                <STableRow key={row.label.toString()}>
+                <STableRow key={row.label.toString() + row.lastCommitment.hash}>
                   {/* Temporary hardcoded pool account identifier */}
                   <STableCell sx={{ paddingLeft: 0 }}>{`PA-${row.name}`}</STableCell>
 

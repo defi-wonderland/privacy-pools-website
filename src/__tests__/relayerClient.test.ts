@@ -6,7 +6,7 @@ import { relayerClient } from '~/utils';
 
 const chainId = whitelistedChains[0].id;
 const relayerUrl = chainData[chainId].relayers[0].url;
-const assetAddress = chainData[chainId].poolInfo.assetAddress;
+const assetAddress = chainData[chainId].poolInfo[0].assetAddress;
 global.fetch = jest.fn() as unknown as typeof fetch;
 
 // Mock global fetch

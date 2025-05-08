@@ -10,9 +10,11 @@ import { formatDataNumber, getUsdBalance, truncateAddress } from '~/utils';
 export const DataSection = () => {
   const { address } = useAccount();
   const {
-    chain: { symbol, decimals, poolInfo },
+    chain: { symbol: nativeSymbol, decimals },
+    balanceBN: { symbol },
     price,
     selectedRelayer,
+    selectedPoolInfo,
   } = useChainContext();
   const { relayerData } = useExternalServices();
   const { amount, target, actionType, poolAccount, vettingFeeBPS } = usePoolAccountsContext();
@@ -31,9 +33,9 @@ export const DataSection = () => {
   const fees = isDeposit ? aspDataFees : relayerFees;
   const feeFormatted = formatDataNumber(fees, decimals);
   const feeUSD = getUsdBalance(price, formatUnits(BigInt(fees ?? 0), decimals), decimals);
-  const feeText = `${feeFormatted} ${symbol} (~ ${feeUSD} USD)`;
+  const feeText = `${feeFormatted} ${nativeSymbol} (~ ${feeUSD} USD)`;
 
-  const feesCollectorAddress = isDeposit ? poolInfo.entryPointAddress : relayerData.relayerAddress;
+  const feesCollectorAddress = isDeposit ? selectedPoolInfo.entryPointAddress : relayerData.relayerAddress;
   const feesCollector = `OxBow (${truncateAddress(feesCollectorAddress)})`;
 
   const amountUSD = getUsdBalance(price, amount, decimals);

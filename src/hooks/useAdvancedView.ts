@@ -15,7 +15,8 @@ const {
 export const useAdvancedView = () => {
   const {
     chainId,
-    chain: { poolInfo, aspUrl },
+    chain: { aspUrl },
+    selectedPoolInfo,
   } = useChainContext();
   const { aspData, isLoading: isLoadingExternalServices } = useExternalServices();
   const { poolAccounts, historyData, hideEmptyPools } = useAccountContext();
@@ -27,7 +28,7 @@ export const useAdvancedView = () => {
 
   const allEventsByPageQuery = useQuery({
     queryKey: ['asp_all_events_by_page', currentPage, chainId],
-    queryFn: () => aspClient.fetchAllEvents(aspUrl, chainId, poolInfo.scope.toString(), currentPage),
+    queryFn: () => aspClient.fetchAllEvents(aspUrl, chainId, selectedPoolInfo.scope.toString(), currentPage),
     refetchInterval: 60000,
     retryOnMount: false,
   });
@@ -36,17 +37,26 @@ export const useAdvancedView = () => {
   const isLoading = isLoadingExternalServices || allEventsByPageQuery.isLoading;
 
   // Ordered personal activity from newest to oldest
-  const orderedPersonalActivity = useMemo(() => historyData.sort((a, b) => b.timestamp - a.timestamp), [historyData]);
+  const orderedPersonalActivity = useMemo(
+    () =>
+      historyData
+        .filter((account) => account.scope === selectedPoolInfo.scope)
+        .sort((a, b) => b.timestamp - a.timestamp),
+    [historyData, selectedPoolInfo.scope],
+  );
 
   // Filter pool accounts based on hideEmptyPools setting
   const filteredPoolAccounts = useMemo(() => {
     return hideEmptyPools ? poolAccounts.filter((account) => formatEther(account.balance) !== '0') : poolAccounts;
   }, [poolAccounts, hideEmptyPools]);
 
-  // Ordered pool accounts from newest to oldest
+  // Ordered pool accounts from newest to oldest and filter by selectedPoolInfo.scope
   const orderedPoolAccounts = useMemo(
-    () => [...filteredPoolAccounts].sort((a, b) => Number(b.deposit.timestamp || 0) - Number(a.deposit.timestamp || 0)),
-    [filteredPoolAccounts],
+    () =>
+      [...filteredPoolAccounts]
+        .filter((account) => account.scope === selectedPoolInfo.scope)
+        .sort((a, b) => Number(b.deposit.timestamp || 0) - Number(a.deposit.timestamp || 0)),
+    [filteredPoolAccounts, selectedPoolInfo.scope],
   );
 
   const fullPoolAccounts = useMemo(() => orderedPoolAccounts, [orderedPoolAccounts]);
