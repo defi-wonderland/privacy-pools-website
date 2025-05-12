@@ -89,11 +89,14 @@ export const useWithdraw = () => {
 
       const poolScope = await getScope(publicClient, poolInfo.address);
       const stateMerkleProof = await getMerkleProof(stateLeaves?.map(BigInt) as bigint[], commitment.hash);
+      console.log('aspLeaves', aspLeaves);
       const aspMerkleProof = await getMerkleProof(aspLeaves?.map(BigInt), commitment.label);
       const context = await getContext(newWithdrawal, poolScope as Hash);
       const { secret, nullifier } = createWithdrawalSecrets(accountService, commitment);
 
       aspMerkleProof.index = Object.is(aspMerkleProof.index, NaN) ? 0 : aspMerkleProof.index; // workaround for NaN index, SDK issue
+
+      console.log('aspMerkleProof', aspMerkleProof);
 
       const withdrawalProofInput = prepareWithdrawalProofInput(
         commitment,
@@ -145,6 +148,11 @@ export const useWithdraw = () => {
       await switchChainAsync({ chainId });
 
       const poolScope = await getScope(publicClient, poolInfo.address);
+
+      console.log('aspData', aspData);
+
+      console.log('poolScope', poolScope);
+      console.log('feeCommitment', feeCommitment);
 
       try {
         setIsClosable(false);
