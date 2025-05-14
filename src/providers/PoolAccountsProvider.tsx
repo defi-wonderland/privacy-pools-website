@@ -49,6 +49,8 @@ type ContextType = {
   setFeeCommitment: (val: FeeCommitment | null) => void;
   resetTransactionState: () => void;
   isAssetConfigLoading: boolean;
+  feeBPSForWithdraw: bigint;
+  setFeeBPSForWithdraw: (val: bigint) => void;
 };
 
 interface Props {
@@ -74,6 +76,7 @@ export const PoolAccountsProvider = ({ children }: Props) => {
   const [withdrawal, setWithdrawal] = useState<Withdrawal | null>(null);
   const [newSecretKeys, setNewSecretKeys] = useState<{ secret: bigint; nullifier: bigint } | null>(null);
   const [feeCommitment, setFeeCommitment] = useState<FeeCommitment | null>(null);
+  const [feeBPSForWithdraw, setFeeBPSForWithdraw] = useState<bigint>(BigInt(0));
 
   const [selectedHistoryData, setSelectedHistoryData] = useState<HistoryData[number]>();
 
@@ -89,6 +92,7 @@ export const PoolAccountsProvider = ({ children }: Props) => {
     setActionType(undefined);
     setPoolAccount(undefined);
     setFeeCommitment(null);
+    setFeeBPSForWithdraw(BigInt(0));
   };
 
   const { data: assetConfigs, isLoading: isAssetConfigLoading } = useQuery({
@@ -145,6 +149,8 @@ export const PoolAccountsProvider = ({ children }: Props) => {
         vettingFeeBPS: assetConfigs?.vettingFeeBPS ?? BigInt(0),
         minimumDepositAmount: assetConfigs?.minimumDepositAmount ?? BigInt(0),
         isAssetConfigLoading,
+        feeBPSForWithdraw,
+        setFeeBPSForWithdraw,
       }}
     >
       {children}

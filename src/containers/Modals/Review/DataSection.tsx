@@ -5,7 +5,7 @@ import { useAccount } from 'wagmi';
 import { ExtendedTooltip as Tooltip } from '~/components';
 import { useExternalServices, usePoolAccountsContext, useChainContext } from '~/hooks';
 import { EventType } from '~/types';
-import { formatDataNumber, getUsdBalance, truncateAddress } from '~/utils';
+import { getUsdBalance, truncateAddress } from '~/utils';
 
 export const DataSection = () => {
   const { address } = useAccount();
@@ -14,7 +14,7 @@ export const DataSection = () => {
     price,
   } = useChainContext();
   const { currentSelectedRelayerData } = useExternalServices();
-  const { amount, target, actionType, poolAccount, vettingFeeBPS } = usePoolAccountsContext();
+  const { amount, target, actionType, poolAccount, vettingFeeBPS, feeBPSForWithdraw } = usePoolAccountsContext();
   const isDeposit = actionType === EventType.DEPOSIT;
   const aspDataFees = (vettingFeeBPS * parseUnits(amount, decimals)) / 100n / 100n;
   const aspOrRelayer = {
@@ -25,11 +25,11 @@ export const DataSection = () => {
   const fromAddress = isDeposit ? address : '';
   const toAddress = isDeposit ? '' : target;
 
-  const relayerFees = (BigInt(currentSelectedRelayerData?.fees ?? 0n) * parseUnits(amount, decimals)) / 100n / 100n;
+  const relayerFees = (BigInt(feeBPSForWithdraw ?? 0n) * parseUnits(amount, decimals)) / 100n / 100n;
 
   const fees = isDeposit ? aspDataFees : relayerFees;
-  const feeFormatted = formatDataNumber(fees, decimals);
-  const feeUSD = getUsdBalance(price, formatUnits(BigInt(fees ?? 0), decimals), decimals);
+  const feeFormatted = formatUnits(fees, decimals);
+  const feeUSD = getUsdBalance(price, feeFormatted, decimals);
   const feeText = `${feeFormatted} ${symbol} (~ ${feeUSD} USD)`;
 
   const feesCollectorAddress = isDeposit ? poolInfo.entryPointAddress : currentSelectedRelayerData?.relayerAddress;

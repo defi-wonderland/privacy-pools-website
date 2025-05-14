@@ -39,7 +39,7 @@ export const WithdrawForm = () => {
 
   const { relayerData } = useExternalServices();
   const { getQuote, isQuoteLoading: originalIsLoading, quoteError: originalQuoteError } = relayerData;
-  const { amount, setAmount, target, setTarget, poolAccount, setPoolAccount, setFeeCommitment } =
+  const { amount, setAmount, target, setTarget, poolAccount, setPoolAccount, setFeeCommitment, setFeeBPSForWithdraw } =
     usePoolAccountsContext();
   const { poolAccounts } = useAccountContext();
 
@@ -166,11 +166,12 @@ export const WithdrawForm = () => {
   const handleWithdraw = useCallback(() => {
     if (quoteCommitment && countdown > 0) {
       setFeeCommitment(quoteCommitment);
+      setFeeBPSForWithdraw(feeBPS ? BigInt(feeBPS) : BigInt(0));
       setModalOpen(ModalType.GENERATE_ZK_PROOF);
     } else {
       addNotification('error', 'Cannot proceed: relayer quote is invalid or expired.');
     }
-  }, [quoteCommitment, countdown, setFeeCommitment, setModalOpen, addNotification]);
+  }, [quoteCommitment, countdown, setFeeCommitment, setModalOpen, addNotification, feeBPS, setFeeBPSForWithdraw]);
 
   const chainIcon = useMemo(() => {
     if (chainId === sepolia.id || chainId === mainnet.id) {

@@ -67,7 +67,8 @@ const testnetChainData: ChainData = {
     decimals: sepolia.nativeCurrency.decimals,
     image: mainnetIcon.src,
     explorerUrl: sepolia.blockExplorers.default.url,
-    rpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+    // rpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+    rpcUrl: `https://ethereum-sepolia-rpc.publicnode.com/`,
     aspUrl: ASP_ENDPOINT,
     relayers: [
       { name: 'Testnet Relay', url: 'https://testnet-relayer.privacypools.com' },
