@@ -1,8 +1,6 @@
-// test functions in seedPhrase.ts
-
 import { describe, it, expect } from '@jest/globals';
 import { mnemonicToAccount } from 'viem/accounts';
-import { generateSeedPhrase, verifyAndSanitizeSeedPhrase } from '~/utils/seedPhrase';
+import { generateSeedPhrase, verifyAndSanitizeSeedPhrase } from '~/utils';
 
 describe('seedPhrase', () => {
   const validSeedPhrase = 'pear stone nephew summer west purpose load anger robust circle addict memory';

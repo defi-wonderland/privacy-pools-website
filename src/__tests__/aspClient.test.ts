@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { MOCK_MT_ROOTS, MOCK_POOL, MOCK_ALL_EVENTS } from '~/__tests__/__mocks__';
+import {
+  MOCK_MT_ROOTS,
+  MOCK_POOL,
+  MOCK_ALL_EVENTS,
+  MOCK_DEPOSITS_BY_LABEL,
+  MOCK_MT_LEAVES,
+} from '~/__tests__/__mocks__';
 import { chainData, whitelistedChains } from '~/config';
 import { getConstants } from '~/config/constants';
 import { getEnv } from '~/config/env';
@@ -130,6 +136,122 @@ describe('aspClient', () => {
       } as Response);
 
       await expect(aspClient.fetchAllEvents(ASP_ENDPOINT, chainId, scope, 1, ITEMS_PER_PAGE)).rejects.toThrow(
+        'Request failed: Server Error',
+      );
+    });
+  });
+
+  describe('fetchDepositsByLabel', () => {
+    const labels = ['label1', 'label2'];
+    it('should fetch deposits by label data successfully', async () => {
+      // Mock token fetch first
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ token: 'test-token' }),
+      } as Response);
+
+      // Mock deposits fetch
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(MOCK_DEPOSITS_BY_LABEL),
+      } as Response);
+
+      const result = await aspClient.fetchDepositsByLabel(ASP_ENDPOINT, chainId, scope, labels);
+
+      // First call should be to get the token
+      expect(global.fetch).toHaveBeenNthCalledWith(1, '/api/token');
+
+      // Second call should be to get the deposits with the token and labels header
+      expect(global.fetch).toHaveBeenNthCalledWith(2, `${ASP_ENDPOINT}/${chainId}/private/deposits/${scope}`, {
+        headers: {
+          Authorization: 'Bearer test-token',
+          'X-labels': labels.join(','),
+        },
+      });
+
+      expect(result).toEqual(MOCK_DEPOSITS_BY_LABEL);
+    });
+
+    it('should throw error when token fetch fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        statusText: 'Unauthorized',
+      } as Response);
+
+      await expect(aspClient.fetchDepositsByLabel(ASP_ENDPOINT, chainId, scope, labels)).rejects.toThrow(
+        'Failed to get token',
+      );
+    });
+
+    it('should throw error when deposits fetch fails', async () => {
+      // Mock successful token fetch
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ token: 'test-token' }),
+      } as Response);
+
+      // Mock failed deposits fetch
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        statusText: 'Server Error',
+      } as Response);
+
+      await expect(aspClient.fetchDepositsByLabel(ASP_ENDPOINT, chainId, scope, labels)).rejects.toThrow(
+        'Request failed: Server Error',
+      );
+    });
+  });
+
+  describe('fetchMtLeaves', () => {
+    it('should fetch mt leaves data successfully', async () => {
+      // Mock token fetch first
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ token: 'test-token' }),
+      } as Response);
+
+      // Mock leaves fetch
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(MOCK_MT_LEAVES),
+      } as Response);
+
+      const result = await aspClient.fetchMtLeaves(ASP_ENDPOINT, chainId, scope);
+
+      // First call should be to get the token
+      expect(global.fetch).toHaveBeenNthCalledWith(1, '/api/token');
+
+      // Second call should be to get the leaves with the token
+      expect(global.fetch).toHaveBeenNthCalledWith(2, `${ASP_ENDPOINT}/${chainId}/private/mt-leaves/${scope}`, {
+        headers: { Authorization: 'Bearer test-token' },
+      });
+
+      expect(result).toEqual(MOCK_MT_LEAVES);
+    });
+
+    it('should throw error when token fetch fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        statusText: 'Unauthorized',
+      } as Response);
+
+      await expect(aspClient.fetchMtLeaves(ASP_ENDPOINT, chainId, scope)).rejects.toThrow('Failed to get token');
+    });
+
+    it('should throw error when leaves fetch fails', async () => {
+      // Mock successful token fetch
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ token: 'test-token' }),
+      } as Response);
+
+      // Mock failed leaves fetch
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        statusText: 'Server Error',
+      } as Response);
+
+      await expect(aspClient.fetchMtLeaves(ASP_ENDPOINT, chainId, scope)).rejects.toThrow(
         'Request failed: Server Error',
       );
     });

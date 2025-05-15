@@ -2,6 +2,12 @@ import { decodeEventLog, parseAbiItem, TransactionReceipt } from 'viem';
 
 export const truncateAddress = (address?: string) => {
   if (!address) return '';
+  // Only truncate if the address is longer than a typical short display (e.g., prefix + suffix + '...')
+  // 6 (prefix) + 4 (suffix) = 10. If length is > 10, then it's safe to truncate.
+  if (address.length <= 10) {
+    // Handles cases like "0x123", "0xabcdef1234"
+    return address;
+  }
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
@@ -21,13 +27,25 @@ export const formatTimestamp = (timestamp?: string, full?: boolean): string => {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
 
-  const timezone = date.getTimezoneOffset();
-  const timezoneSign = timezone > 0 ? '+' : '-';
-  const timezoneOffset = Math.abs(timezone);
-  const timezoneOffsetHours = Math.floor(timezoneOffset / 60);
+  // getTimezoneOffset returns the difference in minutes between UTC and local time.
+  // Positive value if local time is behind UTC (e.g., New York: 300 for UTC-5).
+  // Negative value if local time is ahead of UTC (e.g., Berlin: -120 for UTC+2).
+  const rawOffsetMinutes = date.getTimezoneOffset();
+
+  let offsetString = '';
+  if (full) {
+    const offsetSign = rawOffsetMinutes > 0 ? '-' : '+';
+    const offsetHours = Math.abs(rawOffsetMinutes / 60);
+    // Ensure it's always UTC+0 for zero offset, as per test expectations.
+    if (rawOffsetMinutes === 0) {
+      offsetString = 'UTC+0';
+    } else {
+      offsetString = `UTC${offsetSign}${offsetHours}`;
+    }
+  }
 
   return full
-    ? `${day}/${month}/${year} ${hours}:${minutes} UTC${timezoneSign}${timezoneOffsetHours}`
+    ? `${day}/${month}/${year} ${hours}:${minutes} ${offsetString}`
     : `${day}/${month}/${year} ${hours}:${minutes}`;
 };
 
