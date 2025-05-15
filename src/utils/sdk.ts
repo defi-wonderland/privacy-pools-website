@@ -56,6 +56,7 @@ const dataServiceConfig: ChainConfig[] = poolsByChain.map((pool) => {
     privacyPoolAddress: pool.address,
     startBlock: pool.deploymentBlock,
     rpcUrl: chainData[pool.chainId].rpcUrl,
+    apiKey: 'sdk', // It's not an api key https://viem.sh/docs/clients/public#key-optional
   };
 });
 const dataService = new DataService(dataServiceConfig);
@@ -127,17 +128,15 @@ export const verifyWithdrawalProof = async (proof: WithdrawalProof) => {
 };
 
 export const createAccount = (seed: string) => {
-  const accountService = new AccountService(dataService, { mnemonic: seed });
+  const accountService = new AccountService(dataService, seed);
 
   return accountService;
 };
 
 export const loadAccount = async (seed: string) => {
-  const accountService = new AccountService(dataService, { mnemonic: seed });
-
-  const service = await AccountService.initializeWithEvents(dataService, { service: accountService }, pools);
-
-  return service.account;
+  const accountService = new AccountService(dataService, seed);
+  await accountService.retrieveHistory(pools);
+  return accountService;
 };
 
 export const createDepositSecrets = (accountService: AccountService, scope: Hash, index: bigint) => {
