@@ -69,19 +69,19 @@ describe('formatUtils', () => {
         expect(formatTimestamp(timestampMs)).toBe('15/01/2024 07:50');
       });
 
-      it('should format a timestamp in milliseconds (full format, local time display, UTC+0 suffix)', () => {
+      it('should format a timestamp in milliseconds (full format, local time display, UTC suffix)', () => {
         const timestampMs = '1705315800000';
-        expect(formatTimestamp(timestampMs, true)).toBe('15/01/2024 07:50 UTC+0');
+        expect(formatTimestamp(timestampMs, true)).toBe('15/01/2024 07:50 UTC');
       });
 
-      it('should correctly pad day and month for local time display, potentially changing day (UTC+0 suffix)', () => {
+      it('should correctly pad day and month for local time display, potentially changing day (UTC suffix)', () => {
         const timestampSec = '1672531200';
         expect(formatTimestamp(timestampSec)).toBe('31/12/2022 21:00');
       });
 
-      it('should correctly format and pad for full format when day changes (local time display, UTC+0 suffix)', () => {
+      it('should correctly format and pad for full format when day changes (local time display, UTC suffix)', () => {
         const timestampSec = '1672531200';
-        expect(formatTimestamp(timestampSec, true)).toBe('31/12/2022 21:00 UTC+0');
+        expect(formatTimestamp(timestampSec, true)).toBe('31/12/2022 21:00 UTC');
       });
     });
 
