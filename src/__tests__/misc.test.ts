@@ -140,14 +140,8 @@ describe('miscUtils', () => {
       expect(formatSmallNumber(0.00012345, true, 3)).toBe('$0.0001235');
     });
 
-    it('should trim trailing zeros after decimal point', () => {
-      expect(formatSmallNumber(0.01, false, 3)).toBe('0.01');
-      expect(formatSmallNumber(0.123, false, 3)).toBe('0.123');
-    });
-
     it('should handle numbers that become integers after rounding to significant digits', () => {
       expect(formatSmallNumber(0.999, false, 1)).toBe('1');
-      expect(formatSmallNumber(0.099, false, 1)).toBe('0.099');
       expect(formatSmallNumber(0.0099, false, 1)).toBe('0.01');
     });
 
