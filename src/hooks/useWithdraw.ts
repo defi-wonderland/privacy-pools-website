@@ -88,7 +88,11 @@ export const useWithdraw = () => {
       );
 
       const poolScope = await getScope(publicClient, poolInfo.address);
+      console.log('HELLO TESTING');
+      console.log('stateLeaves', stateLeaves);
+      console.log('commitment.hash', commitment.hash);
       const stateMerkleProof = await getMerkleProof(stateLeaves?.map(BigInt) as bigint[], commitment.hash);
+      console.log('HELLO');
       console.log('aspLeaves', aspLeaves);
       const aspMerkleProof = await getMerkleProof(aspLeaves?.map(BigInt), commitment.label);
       const context = await getContext(newWithdrawal, poolScope as Hash);
@@ -157,6 +161,16 @@ export const useWithdraw = () => {
       try {
         setIsClosable(false);
         setIsLoading(true);
+
+        console.log('DATA:', {
+          withdrawal,
+          proof: proof.proof,
+          publicSignals: proof.publicSignals,
+          scope: poolScope.toString(),
+          chainId,
+          feeCommitment,
+        });
+
         const res = await relayerData.relay({
           withdrawal,
           proof: proof.proof as unknown as ProofRelayerPayload,

@@ -105,6 +105,7 @@ export const ChainProvider = ({ children }: Props) => {
 
   // Effect to ensure the relayer selection is always valid
   useEffect(() => {
+    console.log('RELAYERS DATA', relayersData);
     const firstAvailable = relayersData.find((r) => r.isSelectable);
     const isCurrentSelectedStillValid = selectedRelayer
       ? relayersData.some((r) => r.url === selectedRelayer.url && r.isSelectable)

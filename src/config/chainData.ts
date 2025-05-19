@@ -18,6 +18,7 @@ export interface ChainData {
     decimals: number;
     image: string;
     explorerUrl: string;
+    sdkRpcUrl: string;
     rpcUrl: string;
     aspUrl: string;
     relayers: {
@@ -45,6 +46,7 @@ const mainnetChainData: ChainData = {
     image: mainnetIcon.src,
     explorerUrl: mainnet.blockExplorers.default.url,
     relayers: [{ name: 'Freedom Relay', url: 'https://www.freedomrelay.io' }],
+    sdkRpcUrl: 'https://eth.rpc.hypersync.xyz/',
     rpcUrl: `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
     aspUrl: ASP_ENDPOINT,
     poolInfo: {
@@ -68,6 +70,7 @@ const testnetChainData: ChainData = {
     image: mainnetIcon.src,
     explorerUrl: sepolia.blockExplorers.default.url,
     // rpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+    sdkRpcUrl: 'https://sepolia.rpc.hypersync.xyz/',
     rpcUrl: `https://ethereum-sepolia-rpc.publicnode.com/`,
     aspUrl: ASP_ENDPOINT,
     relayers: [
