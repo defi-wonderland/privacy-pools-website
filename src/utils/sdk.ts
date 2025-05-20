@@ -55,7 +55,7 @@ const dataServiceConfig: ChainConfig[] = poolsByChain.map((pool) => {
     chainId: pool.chainId,
     privacyPoolAddress: pool.address,
     startBlock: pool.deploymentBlock,
-    rpcUrl: chainData[pool.chainId].rpcUrl,
+    rpcUrl: chainData[pool.chainId].sdkRpcUrl,
   };
 });
 const dataService = new DataService(dataServiceConfig);

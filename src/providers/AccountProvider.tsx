@@ -73,16 +73,17 @@ export const AccountProvider = ({ children }: Props) => {
     BigInt(0),
   );
 
-  const hasApprovedDeposit = useMemo(() => {
-    const approvedAccount = poolAccounts.find(
-      (account) => account.reviewStatus === ReviewStatus.APPROVED && account.balance !== 0n,
-    );
+  const approvedAccount = useMemo(() => {
+    return poolAccounts.find((account) => account.reviewStatus === ReviewStatus.APPROVED && account.balance !== 0n);
+  }, [poolAccounts]);
+
+  const hasApprovedDeposit = !!approvedAccount;
+
+  useEffect(() => {
     if (approvedAccount && !poolAccount) {
       setPoolAccount(approvedAccount); // set default pool account
     }
-
-    return !!approvedAccount;
-  }, [poolAccounts, poolAccount, setPoolAccount]);
+  }, [approvedAccount, poolAccount, setPoolAccount]);
 
   // Updates the review status and timestamp of deposit entries in pool accounts based on deposit data from ASP
   const processDeposits = useCallback(
