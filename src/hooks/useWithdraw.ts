@@ -46,10 +46,13 @@ export const useWithdraw = () => {
     newSecretKeys,
     setNewSecretKeys,
     setTransactionHash,
+    feeCommitment,
   } = usePoolAccountsContext();
   const {
     chain: { poolInfo },
     chainId,
+    selectedRelayer,
+    relayersData,
   } = useChainContext();
   const { accountService, addWithdrawal } = useAccountContext();
   const publicClient = usePublicClient({ chainId });
@@ -61,14 +64,17 @@ export const useWithdraw = () => {
   const generateProof = async () => {
     if (TEST_MODE) return;
 
+    const relayerDetails = relayersData.find((r) => r.url === selectedRelayer?.url);
+
     if (
       !poolAccount ||
       !target ||
       !commitment ||
       !aspLeaves ||
       !stateLeaves ||
-      !relayerData.fees ||
-      !relayerData.relayerAddress ||
+      !relayerDetails ||
+      !relayerDetails.relayerAddress ||
+      relayerDetails.fees === undefined ||
       !accountService
     )
       throw new Error('Missing some required data to generate proof');
@@ -77,17 +83,24 @@ export const useWithdraw = () => {
       const newWithdrawal = prepareWithdrawRequest(
         getAddress(target),
         getAddress(poolInfo.entryPointAddress),
-        getAddress(relayerData.relayerAddress),
-        relayerData.fees,
+        getAddress(relayerDetails.relayerAddress),
+        relayerDetails.fees,
       );
 
       const poolScope = await getScope(publicClient, poolInfo.address);
+      console.log('HELLO TESTING');
+      console.log('stateLeaves', stateLeaves);
+      console.log('commitment.hash', commitment.hash);
       const stateMerkleProof = await getMerkleProof(stateLeaves?.map(BigInt) as bigint[], commitment.hash);
+      console.log('HELLO');
+      console.log('aspLeaves', aspLeaves);
       const aspMerkleProof = await getMerkleProof(aspLeaves?.map(BigInt), commitment.label);
       const context = await getContext(newWithdrawal, poolScope as Hash);
       const { secret, nullifier } = createWithdrawalSecrets(accountService, commitment);
 
       aspMerkleProof.index = Object.is(aspMerkleProof.index, NaN) ? 0 : aspMerkleProof.index; // workaround for NaN index, SDK issue
+
+      console.log('aspMerkleProof', aspMerkleProof);
 
       const withdrawalProofInput = prepareWithdrawalProofInput(
         commitment,
@@ -121,13 +134,16 @@ export const useWithdraw = () => {
 
   const withdraw = async () => {
     if (!TEST_MODE) {
+      const relayerDetails = relayersData.find((r) => r.url === selectedRelayer?.url);
+
       if (
         !proof ||
         !withdrawal ||
         !commitment ||
         !target ||
-        !relayerData.fees ||
-        !relayerData.relayerAddress ||
+        !relayerDetails ||
+        !relayerDetails.relayerAddress ||
+        !feeCommitment ||
         !newSecretKeys ||
         !accountService
       )
@@ -137,15 +153,31 @@ export const useWithdraw = () => {
 
       const poolScope = await getScope(publicClient, poolInfo.address);
 
+      console.log('aspData', aspData);
+
+      console.log('poolScope', poolScope);
+      console.log('feeCommitment', feeCommitment);
+
       try {
         setIsClosable(false);
         setIsLoading(true);
+
+        console.log('DATA:', {
+          withdrawal,
+          proof: proof.proof,
+          publicSignals: proof.publicSignals,
+          scope: poolScope.toString(),
+          chainId,
+          feeCommitment,
+        });
+
         const res = await relayerData.relay({
           withdrawal,
           proof: proof.proof as unknown as ProofRelayerPayload,
           publicSignals: proof.publicSignals as unknown as string[],
           scope: poolScope.toString(),
           chainId,
+          feeCommitment,
         });
         if (!res.success) throw new Error(res.error || 'Relay failed');
 

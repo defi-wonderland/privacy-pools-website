@@ -57,6 +57,7 @@ describe('relayerClient', () => {
       const proof = MOCK_RELAYER.withdrawProof.proof;
       const publicSignals = MOCK_RELAYER.withdrawProof.publicSignals;
       const scope = MOCK_RELAYER.scope;
+      const feeCommitment = MOCK_RELAYER.feeCommitment;
 
       const result = await relayerClient.relay(relayerUrl, {
         withdrawal,
@@ -64,6 +65,7 @@ describe('relayerClient', () => {
         publicSignals,
         scope,
         chainId,
+        feeCommitment,
       });
 
       expect(mockFetch).toHaveBeenCalledWith(`${relayerUrl}/relayer/request`, {
@@ -78,6 +80,7 @@ describe('relayerClient', () => {
             publicSignals,
             scope,
             chainId,
+            feeCommitment,
           },
           (_key, value) => (typeof value === 'bigint' ? value.toString() : value),
         ),
