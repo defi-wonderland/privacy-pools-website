@@ -19,9 +19,6 @@ export const Header = () => {
       <StyledHeader>
         <Link href='/'>
           <Logo />
-        </Link>
-        <Actions>
-          <ChainSelect />
           {
             // TODO: This is a temporary button to select the asset
             // We should remove this once we have a proper way to select the asset
@@ -35,6 +32,9 @@ export const Header = () => {
           >
             {selectedAsset} Selected
           </Button>
+        </Link>
+        <Actions>
+          <ChainSelect />
 
           {!isConnected && <SignInButton />}
           {isConnected && <Menu />}
