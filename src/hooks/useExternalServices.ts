@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useASP, useRelayer, useChainContext } from '~/hooks';
 
 export const useExternalServices = () => {
@@ -8,15 +9,23 @@ export const useExternalServices = () => {
     selectedRelayer,
     chain: { aspUrl },
     selectedPoolInfo,
+    relayersData,
   } = useChainContext();
-  const aspData = useASP(chainId, selectedPoolInfo.scope.toString(), aspUrl);
-  const relayerData = useRelayer(selectedRelayer.url, chainId);
 
-  const isLoading = !!aspData.isLoading || !!relayerData.isLoading;
+  const currentSelectedRelayerData = useMemo(() => {
+    return relayersData.find((r) => r.url === selectedRelayer?.url);
+  }, [relayersData, selectedRelayer]);
+
+  const relayerData = useRelayer();
+
+  const aspData = useASP(chainId, selectedPoolInfo.scope.toString(), aspUrl);
+
+  const isLoading = aspData.isLoading || relayerData.isQuoteLoading;
 
   return {
     aspData,
     relayerData,
+    currentSelectedRelayerData,
     isLoading,
   };
 };

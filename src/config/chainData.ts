@@ -31,6 +31,7 @@ export interface ChainData {
     decimals: number;
     image: string;
     explorerUrl: string;
+    sdkRpcUrl: string;
     rpcUrl: string;
     aspUrl: string;
     relayers: {
@@ -50,6 +51,7 @@ const mainnetChainData: ChainData = {
     image: mainnetIcon.src,
     explorerUrl: mainnet.blockExplorers.default.url,
     relayers: [{ name: 'Freedom Relay', url: 'https://www.freedomrelay.io' }],
+    sdkRpcUrl: 'https://eth.rpc.hypersync.xyz/',
     rpcUrl: `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
     aspUrl: ASP_ENDPOINT,
     poolInfo: [
@@ -60,7 +62,7 @@ const mainnetChainData: ChainData = {
         scope: 4916574638117198869413701114161172350986437430914933850166949084132905299523n,
         deploymentBlock: 22153707n,
         entryPointAddress: '0x6818809EefCe719E480a7526D76bD3e561526b46',
-        maxDeposit: parseEther('1'),
+        maxDeposit: parseEther('10000'),
         asset: 'ETH',
       },
       {
@@ -85,7 +87,9 @@ const testnetChainData: ChainData = {
     decimals: sepolia.nativeCurrency.decimals,
     image: mainnetIcon.src,
     explorerUrl: sepolia.blockExplorers.default.url,
-    rpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+    // rpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+    sdkRpcUrl: 'https://sepolia.rpc.hypersync.xyz/',
+    rpcUrl: `https://ethereum-sepolia-rpc.publicnode.com/`,
     aspUrl: ASP_ENDPOINT,
     relayers: [
       { name: 'Testnet Relay', url: 'https://testnet-relayer.privacypools.com' },

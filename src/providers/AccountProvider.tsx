@@ -130,9 +130,11 @@ export const AccountProvider = ({ children }: Props) => {
           reviewStatus = ReviewStatus.PENDING;
         }
 
+        const isWithdrawn = entry.balance === BigInt(0) && deposit.reviewStatus === ReviewStatus.APPROVED;
+
         return {
           ...entry,
-          reviewStatus: TEST_MODE ? ReviewStatus.APPROVED : reviewStatus,
+          reviewStatus: TEST_MODE ? ReviewStatus.APPROVED : isWithdrawn ? ReviewStatus.WITHDRAWN : reviewStatus,
           isValid: reviewStatus === ReviewStatus.APPROVED, // Could be removed due reviewStatus is pending till leaves are updated
           timestamp: deposit.timestamp,
         };

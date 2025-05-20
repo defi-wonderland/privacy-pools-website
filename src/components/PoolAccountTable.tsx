@@ -133,7 +133,7 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
                       : formatTimestamp(row.deposit.timestamp?.toString() ?? '')}
                   </STableCell>
 
-                  <STableCell sx={{ paddingRight: mobile ? 0 : '1rem', textAlign: 'center' }}>
+                  <STableCell sx={{ paddingRight: mobile ? 0 : '1rem', textAlign: 'left' }}>
                     <Tooltip
                       title={row.reviewStatus === ReviewStatus.PENDING ? statusMessage : ''}
                       placement='top'

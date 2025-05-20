@@ -14,7 +14,7 @@ export const DataSection = () => {
     price,
   } = useChainContext();
   const { vettingFeeBPS, selectedHistoryData } = usePoolAccountsContext();
-  const { relayerData } = useExternalServices();
+  const { currentSelectedRelayerData } = useExternalServices();
   const isDeposit = selectedHistoryData?.type === EventType.DEPOSIT;
   const isExit = selectedHistoryData?.type === EventType.EXIT;
 
@@ -27,7 +27,7 @@ export const DataSection = () => {
   // const fromAddress = isDeposit ? selectedHistoryData?.address : '';
   // const toAddress = isDeposit ? '' : selectedHistoryData?.address;
 
-  const feeBps = isDeposit ? vettingFeeBPS : BigInt(relayerData.fees ?? 0n);
+  const feeBps = isDeposit ? vettingFeeBPS : BigInt(currentSelectedRelayerData?.fees ?? 0n);
   const amountInWei = BigInt(selectedHistoryData?.amount ?? 0n);
 
   const denominator = 10000n - feeBps;
@@ -39,8 +39,10 @@ export const DataSection = () => {
   const feeUSD = getUsdBalance(price, formatEther(fees), decimals);
   const feeText = `${feeFormatted} ${symbol} (~ ${feeUSD} USD)`;
 
-  const feesCollectorAddress = isDeposit ? selectedPoolInfo.entryPointAddress : relayerData.relayerAddress;
-  const feesCollector = `OxBow (${truncateAddress(feesCollectorAddress)})`;
+  const feesCollectorAddress = isDeposit
+    ? selectedPoolInfo.entryPointAddress
+    : currentSelectedRelayerData?.relayerAddress;
+  const feesCollector = `OxBow (${truncateAddress(feesCollectorAddress ?? '0x')})`;
 
   const totalText = isDeposit ? formatEther(originalAmount) : formatEther(amountInWei);
   const totalUSD = getUsdBalance(price, totalText, decimals);
