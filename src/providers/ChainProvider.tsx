@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useEffect, useMemo, useState, useRef } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { parseEther } from 'viem';
 import { useAccount, useBalance } from 'wagmi';
@@ -57,6 +57,7 @@ export const ChainProvider = ({ children }: Props) => {
   const [selectedRelayer, setSelectedRelayer] = useState<SelectedRelayerType | undefined>(
     () => chainData[chainId].relayers[0],
   );
+  const notificationShownRef = useRef(false);
 
   const chain = useMemo(() => chainData[chainId], [chainId]);
 
@@ -110,6 +111,8 @@ export const ChainProvider = ({ children }: Props) => {
     })),
   });
 
+  const allQueriesAreLoading = useMemo(() => feesQueries.some((q) => q.isLoading), [feesQueries]);
+
   const relayersData: RelayerDataType[] = useMemo(
     () =>
       feesQueries
@@ -131,10 +134,15 @@ export const ChainProvider = ({ children }: Props) => {
   }, [feesQueries, relayersData]);
 
   useEffect(() => {
-    if (!hasSomeRelayerAvailable && !feesQueries.some((q) => q.isLoading)) {
-      addNotification('error', 'No relayers available at the moment. Please try again later.');
+    if (!hasSomeRelayerAvailable && !allQueriesAreLoading) {
+      if (!notificationShownRef.current) {
+        addNotification('error', 'No relayers available at the moment. Please try again later.');
+        notificationShownRef.current = true;
+      }
+    } else {
+      notificationShownRef.current = false;
     }
-  }, [hasSomeRelayerAvailable, feesQueries, addNotification]);
+  }, [hasSomeRelayerAvailable, allQueriesAreLoading, addNotification]);
 
   // Effect to ensure the relayer selection is always valid
   useEffect(() => {
@@ -174,7 +182,7 @@ export const ChainProvider = ({ children }: Props) => {
         setSelectedRelayer,
         relayers: chain.relayers,
         relayersData,
-        isLoadingRelayers: feesQueries.some((query) => query.isLoading),
+        isLoadingRelayers: allQueriesAreLoading,
         hasSomeRelayerAvailable,
         selectedAsset,
         setSelectedAsset,
