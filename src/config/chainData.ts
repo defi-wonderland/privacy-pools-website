@@ -1,4 +1,4 @@
-import { Address, parseEther } from 'viem';
+import { Address, parseEther, parseUnits } from 'viem';
 import { Chain, mainnet, sepolia } from 'viem/chains';
 import { getEnv } from '~/config/env';
 import mainnetIcon from '~/assets/icons/mainnet.svg';
@@ -11,7 +11,7 @@ const testnetChains: readonly [Chain, ...Chain[]] = [sepolia];
 
 export const whitelistedChains = IS_TESTNET ? testnetChains : mainnetChains;
 
-export type ChainAssets = 'ETH' | 'WETH';
+export type ChainAssets = 'ETH' | 'USDC';
 
 export interface PoolInfo {
   chainId: number;
@@ -22,6 +22,7 @@ export interface PoolInfo {
   assetAddress: Address;
   maxDeposit: bigint;
   asset: ChainAssets;
+  assetDecimals?: number;
 }
 
 export interface ChainData {
@@ -64,6 +65,7 @@ const mainnetChainData: ChainData = {
         entryPointAddress: '0x6818809EefCe719E480a7526D76bD3e561526b46',
         maxDeposit: parseEther('10000'),
         asset: 'ETH',
+        assetDecimals: 18,
       },
       {
         chainId: mainnet.id,
@@ -72,8 +74,9 @@ const mainnetChainData: ChainData = {
         scope: 4916574638117198869413701114161172350986437430914933850166949084132905299523n,
         deploymentBlock: 22153707n,
         entryPointAddress: '0x6818809EefCe719E480a7526D76bD3e561526b46',
-        maxDeposit: parseEther('100'),
-        asset: 'WETH',
+        maxDeposit: parseUnits('100', 6),
+        asset: 'USDC',
+        assetDecimals: 6,
       },
     ],
   },
@@ -105,16 +108,18 @@ const testnetChainData: ChainData = {
         entryPointAddress: '0x5fffC32b925E2E2f5931905EE785568D98B641d1',
         maxDeposit: parseEther('1'),
         asset: 'ETH',
+        assetDecimals: 18,
       },
       {
         chainId: sepolia.id,
-        assetAddress: '0x7b79995e5f793a07bc00c21412e50ecae098e7f9',
-        address: '0x7f04ef49cabc092f7e4d912fad2a2cf32cc66b1a',
-        scope: 4749744745128116739741514172614423557653210085983118945736246609179715050509n,
-        deploymentBlock: 8214673n,
+        assetAddress: '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238',
+        address: '0x5a3be0927950b089463a08793ed33fc228f3f885',
+        scope: 13604834230510441355137990666952328592573726765577362680366393464214657610084n,
+        deploymentBlock: 8384614n,
         entryPointAddress: '0x5fffC32b925E2E2f5931905EE785568D98B641d1',
-        maxDeposit: parseEther('100'),
-        asset: 'WETH',
+        maxDeposit: parseUnits('100', 6),
+        asset: 'USDC',
+        assetDecimals: 6,
       },
     ],
   },

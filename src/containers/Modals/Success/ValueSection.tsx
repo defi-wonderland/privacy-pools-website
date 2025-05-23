@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Stack, styled, Typography } from '@mui/material';
-import { formatUnits, parseEther } from 'viem';
+import { formatUnits, parseUnits } from 'viem';
 import { usePoolAccountsContext, useChainContext, useAccountContext } from '~/hooks';
 import { EventType } from '~/types';
 
@@ -17,9 +17,9 @@ export const ValueSection = () => {
 
   const isDeposit = actionType === EventType.DEPOSIT;
 
-  const fee = (vettingFeeBPS * parseEther(amount)) / 100n / 100n;
+  const fee = (vettingFeeBPS * parseUnits(amount, decimals)) / 100n / 100n;
 
-  const totalAmountBN = isDeposit ? parseEther(amount) - fee : parseEther(amount);
+  const totalAmountBN = isDeposit ? parseUnits(amount, decimals) - fee : parseUnits(amount, decimals);
   const formattedTotalAmount = formatUnits(totalAmountBN, decimals);
 
   const remainingBalance = useMemo(() => {

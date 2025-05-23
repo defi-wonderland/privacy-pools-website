@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Stack, Typography, Button, styled } from '@mui/material';
 import { formatUnits } from 'viem';
-import { PoolAccountTable } from '~/components';
+import { AssetSelect, PoolAccountTable } from '~/components';
 import { InfoTooltip } from '~/components/InfoTooltip';
 import { Section, PAContainer, EthText, Subtitle, ActionMenuContainer } from '~/containers';
 import { useAuthContext, useGoTo, useModal, useAccountContext, useAdvancedView, useChainContext } from '~/hooks';
@@ -15,6 +15,7 @@ export const PoolAccountsPreview = () => {
   const { push } = useRouter();
   const {
     balanceBN: { symbol, decimals },
+    selectedPoolInfo: { assetDecimals },
   } = useChainContext();
   const {
     poolsByAssetAndChain,
@@ -73,10 +74,9 @@ export const PoolAccountsPreview = () => {
                 <InfoTooltip message='These are your active deposits in Privacy Pools and their status.' />
               </Stack>
 
-              {/* TODO: Uncomment when the availabilty to select different assets feature is ready */}
-              {/* <Stack direction='row' alignItems='center' gap={1} width='12rem'>
+              <Stack direction='row' alignItems='center' gap={1} width='12rem'>
                 <AssetSelect />
-              </Stack> */}
+              </Stack>
             </Stack>
 
             <Stack
@@ -106,7 +106,7 @@ export const PoolAccountsPreview = () => {
               <Stack width='50%' gap={1}>
                 <Subtitle variant='caption'>Available:</Subtitle>
                 <EthText variant='subtitle1' fontWeight='bold'>
-                  {formatUnits(amountPoolAsset, decimals)}
+                  {formatUnits(amountPoolAsset, assetDecimals || decimals)}
                   <span> {symbol}</span>
                 </EthText>
               </Stack>
@@ -114,7 +114,7 @@ export const PoolAccountsPreview = () => {
               <Stack width='50%' gap={1}>
                 <Subtitle variant='caption'>Being validated:</Subtitle>
                 <EthText variant='subtitle1' fontWeight='bold'>
-                  {formatUnits(pendingAmountPoolAsset, decimals)}
+                  {formatUnits(pendingAmountPoolAsset, assetDecimals || decimals)}
                   <span> {symbol}</span>
                 </EthText>
               </Stack>

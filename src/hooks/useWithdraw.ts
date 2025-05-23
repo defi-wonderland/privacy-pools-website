@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getAddress, Hex, TransactionExecutionError } from 'viem';
+import { getAddress, Hex, parseUnits, TransactionExecutionError } from 'viem';
 import { generatePrivateKey } from 'viem/accounts';
 import { usePublicClient, useSwitchChain } from 'wagmi';
 import { getConfig } from '~/config';
@@ -49,7 +49,13 @@ export const useWithdraw = () => {
     feeCommitment,
   } = usePoolAccountsContext();
 
-  const { selectedPoolInfo, chainId, selectedRelayer, relayersData } = useChainContext();
+  const {
+    selectedPoolInfo,
+    chainId,
+    selectedRelayer,
+    relayersData,
+    balanceBN: { decimals },
+  } = useChainContext();
   const { accountService, addWithdrawal } = useAccountContext();
   const publicClient = usePublicClient({ chainId });
 
@@ -84,24 +90,18 @@ export const useWithdraw = () => {
       );
 
       const poolScope = await getScope(publicClient, selectedPoolInfo.address);
-      console.log('HELLO TESTING');
-      console.log('stateLeaves', stateLeaves);
-      console.log('commitment.hash', commitment.hash);
 
       const stateMerkleProof = await getMerkleProof(stateLeaves?.map(BigInt) as bigint[], commitment.hash);
-      console.log('HELLO');
-      console.log('aspLeaves', aspLeaves);
+
       const aspMerkleProof = await getMerkleProof(aspLeaves?.map(BigInt), commitment.label);
       const context = await getContext(newWithdrawal, poolScope as Hash);
       const { secret, nullifier } = createWithdrawalSecrets(accountService, commitment);
 
       aspMerkleProof.index = Object.is(aspMerkleProof.index, NaN) ? 0 : aspMerkleProof.index; // workaround for NaN index, SDK issue
 
-      console.log('aspMerkleProof', aspMerkleProof);
-
       const withdrawalProofInput = prepareWithdrawalProofInput(
         commitment,
-        amount,
+        parseUnits(amount, decimals),
         stateMerkleProof,
         aspMerkleProof,
         BigInt(context),
@@ -150,23 +150,9 @@ export const useWithdraw = () => {
 
       const poolScope = await getScope(publicClient, selectedPoolInfo.address);
 
-      console.log('aspData', aspData);
-
-      console.log('poolScope', poolScope);
-      console.log('feeCommitment', feeCommitment);
-
       try {
         setIsClosable(false);
         setIsLoading(true);
-
-        console.log('DATA:', {
-          withdrawal,
-          proof: proof.proof,
-          publicSignals: proof.publicSignals,
-          scope: poolScope.toString(),
-          chainId,
-          feeCommitment,
-        });
 
         const res = await relayerData.relay({
           withdrawal,

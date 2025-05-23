@@ -15,7 +15,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { formatEther, parseEther } from 'viem';
+import { formatUnits, parseUnits } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 import { getConstants } from '~/config/constants';
 import { useChainContext, useModal, usePoolAccountsContext } from '~/hooks';
@@ -30,7 +30,7 @@ export const DepositForm = () => {
   const { setModalOpen } = useModal();
   const [asp, setAsp] = useState(ASP_OPTIONS[0]);
   const {
-    chain: { image, symbol: nativeSymbol },
+    chain: { image },
     balanceBN: { value: balance, symbol, formatted: balanceFormatted, decimals },
     price: currentPrice,
     maxDeposit,
@@ -42,22 +42,22 @@ export const DepositForm = () => {
   const balanceUI = formatDataNumber(balance, decimals, 3, false, true, false);
   // const balanceFormatted = formatEther(BigInt(balanceBN));
 
-  const fee = calculateAspFee(parseEther(amount), vettingFeeBPS);
+  const fee = calculateAspFee(parseUnits(amount, decimals), vettingFeeBPS);
   const feeFormatted = formatDataNumber(fee, decimals);
-  const feeUSD = getUsdBalance(currentPrice, formatEther(fee), decimals);
-  const feeText = `Fee ${feeFormatted} ${nativeSymbol} ~ ${feeUSD} USD`;
+  const feeUSD = getUsdBalance(currentPrice, formatUnits(fee, decimals), decimals);
+  const feeText = `Fee ${feeFormatted} ${symbol} ~ ${feeUSD} USD`;
 
-  const isEnoughBalance = parseEther(amount) <= parseEther(balanceFormatted);
-  const isValidAmount = parseEther(amount) >= minimumDepositAmount;
-  const isMaxAmount = parseEther(inputAmount) > BigInt(maxDeposit);
+  const isEnoughBalance = parseUnits(amount, decimals) <= parseUnits(balanceFormatted, decimals);
+  const isValidAmount = parseUnits(amount, decimals) >= minimumDepositAmount;
+  const isMaxAmount = parseUnits(inputAmount, decimals) > BigInt(maxDeposit);
   const amountHasError = !!Number(amount) && (!isValidAmount || !isEnoughBalance);
   const isDepositDisabled =
     !isEnoughBalance || !isValidAmount || amountHasError || isMaxAmount || !asp || isAssetConfigLoading;
 
   const errorMessage = useMemo(() => {
     if (!inputAmount) return '';
-    if (!isValidAmount) return `Minimum deposit amount is ${formatEther(minimumDepositAmount)} ${symbol}`;
-    if (isMaxAmount) return `Maximum deposit amount is ${formatEther(BigInt(maxDeposit))} ${symbol}`;
+    if (!isValidAmount) return `Minimum deposit amount is ${formatUnits(minimumDepositAmount, decimals)} ${symbol}`;
+    if (isMaxAmount) return `Maximum deposit amount is ${formatUnits(BigInt(maxDeposit), decimals)} ${symbol}`;
     if (!isEnoughBalance) return 'Insufficient balance';
     if (amountHasError) return 'Invalid amount';
     return '';
@@ -70,6 +70,7 @@ export const DepositForm = () => {
     inputAmount,
     maxDeposit,
     isMaxAmount,
+    decimals,
   ]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,7 +83,7 @@ export const DepositForm = () => {
   };
 
   const handleUseMax = () => {
-    const maxAllowedAmount = Math.min(Number(formatEther(BigInt(maxDeposit))), Number(balanceFormatted));
+    const maxAllowedAmount = Math.min(Number(formatUnits(BigInt(maxDeposit), decimals)), Number(balanceFormatted));
     setInputAmount(maxAllowedAmount.toString().slice(0, 6));
   };
 
@@ -102,9 +103,9 @@ export const DepositForm = () => {
   }, [chainId, image, symbol]);
 
   useEffect(() => {
-    const result = calculateInitialDeposit(parseEther(inputAmount), vettingFeeBPS);
-    setAmount(formatEther(result));
-  }, [inputAmount, setAmount, vettingFeeBPS]);
+    const result = calculateInitialDeposit(parseUnits(inputAmount, decimals), vettingFeeBPS);
+    setAmount(formatUnits(result, decimals));
+  }, [inputAmount, setAmount, vettingFeeBPS, decimals]);
 
   return (
     <ModalContainer>

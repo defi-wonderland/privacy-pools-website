@@ -87,16 +87,16 @@ export const ChainProvider = ({ children }: Props) => {
 
   useEffect(() => {
     if (chain) {
-      fetchTokenPrice(chain.symbol)
+      fetchTokenPrice(selectedAsset)
         .then((data) => {
           setPrice(data);
         })
         .catch(() => {
           setPrice(0);
-          addNotification('error', `Error fetching ${chain.symbol} price`);
+          addNotification('error', `Error fetching ${selectedAsset} price`);
         });
     }
-  }, [addNotification, chain]);
+  }, [addNotification, chain, selectedAsset]);
 
   const feesQueries = useQueries({
     queries: chain.relayers.map((relayer) => ({
@@ -146,7 +146,6 @@ export const ChainProvider = ({ children }: Props) => {
 
   // Effect to ensure the relayer selection is always valid
   useEffect(() => {
-    console.log('RELAYERS DATA', relayersData);
     const firstAvailable = relayersData.find((r) => r.isSelectable);
     const isCurrentSelectedStillValid = selectedRelayer
       ? relayersData.some((r) => r.url === selectedRelayer.url && r.isSelectable)

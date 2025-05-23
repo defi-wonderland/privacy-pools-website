@@ -1,16 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Disclaimer, Logo, Menu, SignInButton } from '~/components';
 import { ChainSelect } from '~/components/ChainSelect';
-import { useAuthContext, useChainContext } from '~/hooks';
+import { useAuthContext } from '~/hooks';
 import { zIndex } from '~/utils';
 
 export const Header = () => {
   const { isConnected } = useAuthContext();
-  const { setSelectedAsset, selectedAsset } = useChainContext();
 
   return (
     <HeaderWrapper>
@@ -19,19 +17,6 @@ export const Header = () => {
       <StyledHeader>
         <Link href='/'>
           <Logo />
-          {
-            // TODO: This is a temporary button to select the asset
-            // We should remove this once we have a proper way to select the asset
-            // For now, we are using this to select the asset for the global pool
-            // And for the pool accounts preview
-          }
-          <Button
-            variant='contained'
-            color='primary'
-            onClick={() => setSelectedAsset(selectedAsset === 'ETH' ? 'WETH' : 'ETH')}
-          >
-            {selectedAsset} Selected
-          </Button>
         </Link>
         <Actions>
           <ChainSelect />

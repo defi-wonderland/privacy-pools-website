@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { formatEther } from 'viem';
+import { formatUnits } from 'viem';
 import { getConfig } from '~/config';
 import { useChainContext, useExternalServices, useAccountContext } from '~/hooks';
 import { aspClient } from '~/utils';
@@ -17,6 +17,7 @@ export const useAdvancedView = () => {
     chainId,
     chain: { aspUrl },
     selectedPoolInfo,
+    balanceBN: { decimals },
   } = useChainContext();
   const { aspData, isLoading: isLoadingExternalServices } = useExternalServices();
   const { poolAccounts, historyData, hideEmptyPools } = useAccountContext();
@@ -47,8 +48,10 @@ export const useAdvancedView = () => {
 
   // Filter pool accounts based on hideEmptyPools setting
   const filteredPoolAccounts = useMemo(() => {
-    return hideEmptyPools ? poolAccounts.filter((account) => formatEther(account.balance) !== '0') : poolAccounts;
-  }, [poolAccounts, hideEmptyPools]);
+    return hideEmptyPools
+      ? poolAccounts.filter((account) => formatUnits(account.balance, decimals) !== '0')
+      : poolAccounts;
+  }, [poolAccounts, hideEmptyPools, selectedPoolInfo.scope, decimals]);
 
   // Ordered pool accounts from newest to oldest and filter by selectedPoolInfo.scope
   const orderedPoolAccounts = useMemo(
@@ -59,7 +62,7 @@ export const useAdvancedView = () => {
     [filteredPoolAccounts, selectedPoolInfo.scope],
   );
 
-  const fullPoolAccounts = useMemo(() => orderedPoolAccounts, [orderedPoolAccounts]);
+  const fullPoolAccounts = useMemo(() => orderedPoolAccounts, [orderedPoolAccounts, selectedPoolInfo.scope]);
   const previewPoolAccounts = useMemo(() => orderedPoolAccounts.slice(0, 6), [orderedPoolAccounts]);
 
   const fullPersonalActivity = useMemo(() => orderedPersonalActivity, [orderedPersonalActivity]);

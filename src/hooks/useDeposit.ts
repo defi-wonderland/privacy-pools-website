@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Address, erc20Abi, getAddress, parseEther, TransactionExecutionError, Hash as ViemHash } from 'viem';
+import { Address, erc20Abi, getAddress, parseUnits, TransactionExecutionError, Hash as ViemHash } from 'viem';
 import { useAccount, usePublicClient, useSwitchChain, useWalletClient } from 'wagmi';
 import { getConfig } from '~/config';
 import { useChainContext, useAccountContext, useNotifications, usePoolAccountsContext } from '~/hooks';
@@ -15,7 +15,11 @@ const {
 
 export const useDeposit = () => {
   const { address } = useAccount();
-  const { chainId, selectedPoolInfo } = useChainContext();
+  const {
+    chainId,
+    selectedPoolInfo,
+    balanceBN: { decimals },
+  } = useChainContext();
   const { addNotification, getDefaultErrorMessage } = useNotifications();
   const { switchChainAsync } = useSwitchChain();
   const { setModalOpen, setIsClosable } = useModal();
@@ -55,7 +59,7 @@ export const useDeposit = () => {
         secret,
         precommitment: precommitmentHash,
       } = createDepositSecrets(accountService, BigInt(selectedPoolInfo.scope) as Hash, BigInt(poolAccounts.length));
-      const value = parseEther(amount);
+      const value = parseUnits(amount, decimals);
 
       if (!TEST_MODE) {
         if (!walletClient || !publicClient) throw new Error('Wallet or Public client not found');

@@ -3,7 +3,7 @@
 import { ChangeEvent, FocusEventHandler, useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Box, Button, CircularProgress, FormControl, SelectChangeEvent, Stack, styled, TextField } from '@mui/material';
-import { Address, formatEther, formatUnits, getAddress, isAddress, parseEther } from 'viem';
+import { Address, formatUnits, getAddress, isAddress, parseUnits } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 import { CoinIcon, ImageContainer, InputContainer, ModalContainer, ModalTitle } from '~/containers/Modals/Deposit';
 import {
@@ -29,7 +29,8 @@ export const WithdrawForm = () => {
   const { addNotification } = useNotifications();
 
   const {
-    chain: { symbol, decimals, image },
+    chain: { image },
+    balanceBN: { symbol, decimals },
     selectedPoolInfo,
     chainId,
     selectedRelayer,
@@ -48,16 +49,16 @@ export const WithdrawForm = () => {
 
   const [targetAddressHasError, setTargetAddressHasError] = useState(false);
 
-  const balanceFormatted = formatEther(poolAccount?.balance ?? BigInt(0));
+  const balanceFormatted = formatUnits(poolAccount?.balance ?? BigInt(0), decimals);
   const balanceUSD = getUsdBalance(currentPrice, balanceFormatted, decimals);
 
   const amountBN = useMemo(() => {
     try {
-      return parseEther(amount);
+      return parseUnits(amount, decimals);
     } catch {
       return 0n;
     }
-  }, [amount]);
+  }, [amount, decimals]);
 
   const isValidAmount = useMemo(() => {
     return amountBN > 0n && amountBN <= (poolAccount?.balance ?? 0n);
@@ -110,9 +111,9 @@ export const WithdrawForm = () => {
   const errorMessage = useMemo(() => {
     if (amount && amountBN <= 0n) return 'Withdrawal amount must be greater than 0';
     if (amount && !isValidAmount && amountBN > (poolAccount?.balance ?? 0n))
-      return `Maximum withdraw amount is ${formatEther(poolAccount?.balance ?? 0n)} ${symbol}`;
+      return `Maximum withdraw amount is ${formatUnits(poolAccount?.balance ?? 0n, decimals)} ${symbol}`;
     return '';
-  }, [amount, amountBN, isValidAmount, poolAccount?.balance, symbol]);
+  }, [amount, amountBN, isValidAmount, poolAccount?.balance, symbol, decimals]);
 
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     setAmount(
@@ -160,9 +161,9 @@ export const WithdrawForm = () => {
 
   const handleUseMax = useCallback(() => {
     if (poolAccount?.balance) {
-      setAmount(formatEther(poolAccount.balance));
+      setAmount(formatUnits(poolAccount.balance, decimals));
     }
-  }, [poolAccount, setAmount]);
+  }, [poolAccount, setAmount, decimals]);
 
   const handleWithdraw = useCallback(() => {
     if (quoteCommitment && countdown > 0) {
