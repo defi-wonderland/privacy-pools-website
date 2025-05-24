@@ -41,7 +41,7 @@ cypress/downloads
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-/test/example.spec.ts-snapshots/
+/test/*.spec.ts-snapshots/
 
 # Synpress
 .cache-synpress
