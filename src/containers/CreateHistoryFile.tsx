@@ -5,7 +5,7 @@ import { Button, Checkbox, FormControlLabel, Link, Stack, styled, Typography } f
 import { BackButton } from '~/components';
 import { getConstants } from '~/config/constants';
 import { SeedPhraseForm } from '~/containers';
-import { useModal, usePoolAccountsContext, useAuthContext, useGoTo, useAccountContext } from '~/hooks';
+import { useModal, usePoolAccountsContext, useAuthContext, useGoTo, useAccountContext, useChainContext } from '~/hooks';
 import { EventType, ModalType } from '~/types';
 import { generateSeedPhrase, ROUTER } from '~/utils';
 
@@ -15,12 +15,15 @@ export const CreateHistoryFile = () => {
   const goTo = useGoTo();
   const { setActionType } = usePoolAccountsContext();
   const { createAccount } = useAccountContext();
+  const { maxDeposit } = useChainContext();
   const { login } = useAuthContext();
   const { setModalOpen } = useModal();
   const [seedPhrase, setSeedPhrase] = useState('');
 
   const [isHistoryFileCreated, setIsHistoryFileCreated] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+
+  const isDepositDisabled = !BigInt(maxDeposit);
 
   const handleCreateHistoryFile = () => {
     if (!isConfirmed) return;
@@ -68,7 +71,7 @@ export const CreateHistoryFile = () => {
           </Stack>
         </Stack>
         <Stack gap={2} flexDirection={['column', 'row']}>
-          <Button onClick={goToDeposit} data-testid='deposit-button'>
+          <Button onClick={goToDeposit} data-testid='deposit-button' disabled={isDepositDisabled}>
             Make a deposit
           </Button>
           <Button onClick={goToHome} data-testid='return-to-dashboard-button'>
