@@ -431,15 +431,34 @@ export const entrypointAbi = [
   {
     type: 'function',
     name: 'assetConfig',
-    inputs: [{ name: '_asset', type: 'address', internalType: 'contract IERC20' }],
+    inputs: [
+      {
+        name: '_asset',
+        type: 'address',
+        internalType: 'contract IERC20',
+      },
+    ],
     outputs: [
-      { name: 'pool', type: 'address', internalType: 'contract IPrivacyPool' },
+      {
+        name: 'pool',
+        type: 'address',
+        internalType: 'contract IPrivacyPool',
+      },
       {
         name: 'minimumDepositAmount',
         type: 'uint256',
         internalType: 'uint256',
       },
-      { name: 'vettingFeeBPS', type: 'uint256', internalType: 'uint256' },
+      {
+        name: 'vettingFeeBPS',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: 'maxRelayFeeBPS',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
     ],
     stateMutability: 'view',
   },
@@ -449,7 +468,7 @@ export const entrypointAbi = [
     inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
     outputs: [
       { name: 'root', type: 'uint256', internalType: 'uint256' },
-      { name: 'ipfsHash', type: 'bytes32', internalType: 'bytes32' },
+      { name: 'ipfsCID', type: 'string', internalType: 'string' },
       { name: 'timestamp', type: 'uint256', internalType: 'uint256' },
     ],
     stateMutability: 'view',
@@ -458,9 +477,17 @@ export const entrypointAbi = [
     type: 'function',
     name: 'deposit',
     inputs: [
-      { name: '_asset', type: 'address', internalType: 'contract IERC20' },
+      {
+        name: '_asset',
+        type: 'address',
+        internalType: 'contract IERC20',
+      },
       { name: '_value', type: 'uint256', internalType: 'uint256' },
-      { name: '_precommitment', type: 'uint256', internalType: 'uint256' },
+      {
+        name: '_precommitment',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
     ],
     outputs: [{ name: '_commitment', type: 'uint256', internalType: 'uint256' }],
     stateMutability: 'nonpayable',
@@ -468,7 +495,13 @@ export const entrypointAbi = [
   {
     type: 'function',
     name: 'deposit',
-    inputs: [{ name: '_precommitment', type: 'uint256', internalType: 'uint256' }],
+    inputs: [
+      {
+        name: '_precommitment',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
     outputs: [{ name: '_commitment', type: 'uint256', internalType: 'uint256' }],
     stateMutability: 'payable',
   },
@@ -527,14 +560,31 @@ export const entrypointAbi = [
     type: 'function',
     name: 'registerPool',
     inputs: [
-      { name: '_asset', type: 'address', internalType: 'contract IERC20' },
-      { name: '_pool', type: 'address', internalType: 'contract IPrivacyPool' },
+      {
+        name: '_asset',
+        type: 'address',
+        internalType: 'contract IERC20',
+      },
+      {
+        name: '_pool',
+        type: 'address',
+        internalType: 'contract IPrivacyPool',
+      },
       {
         name: '_minimumDepositAmount',
         type: 'uint256',
         internalType: 'uint256',
       },
-      { name: '_vettingFeeBPS', type: 'uint256', internalType: 'uint256' },
+      {
+        name: '_vettingFeeBPS',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: '_maxRelayFeeBPS',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
     ],
     outputs: [],
     stateMutability: 'nonpayable',
@@ -548,7 +598,11 @@ export const entrypointAbi = [
         type: 'tuple',
         internalType: 'struct IPrivacyPool.Withdrawal',
         components: [
-          { name: 'processooor', type: 'address', internalType: 'address' },
+          {
+            name: 'processooor',
+            type: 'address',
+            internalType: 'address',
+          },
           { name: 'data', type: 'bytes', internalType: 'bytes' },
         ],
       },
@@ -557,9 +611,21 @@ export const entrypointAbi = [
         type: 'tuple',
         internalType: 'struct ProofLib.WithdrawProof',
         components: [
-          { name: 'pA', type: 'uint256[2]', internalType: 'uint256[2]' },
-          { name: 'pB', type: 'uint256[2][2]', internalType: 'uint256[2][2]' },
-          { name: 'pC', type: 'uint256[2]', internalType: 'uint256[2]' },
+          {
+            name: 'pA',
+            type: 'uint256[2]',
+            internalType: 'uint256[2]',
+          },
+          {
+            name: 'pB',
+            type: 'uint256[2][2]',
+            internalType: 'uint256[2][2]',
+          },
+          {
+            name: 'pC',
+            type: 'uint256[2]',
+            internalType: 'uint256[2]',
+          },
           {
             name: 'pubSignals',
             type: 'uint256[8]',
@@ -575,7 +641,13 @@ export const entrypointAbi = [
   {
     type: 'function',
     name: 'removePool',
-    inputs: [{ name: '_asset', type: 'address', internalType: 'contract IERC20' }],
+    inputs: [
+      {
+        name: '_asset',
+        type: 'address',
+        internalType: 'contract IERC20',
+      },
+    ],
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -584,7 +656,11 @@ export const entrypointAbi = [
     name: 'renounceRole',
     inputs: [
       { name: 'role', type: 'bytes32', internalType: 'bytes32' },
-      { name: 'callerConfirmation', type: 'address', internalType: 'address' },
+      {
+        name: 'callerConfirmation',
+        type: 'address',
+        internalType: 'address',
+      },
     ],
     outputs: [],
     stateMutability: 'nonpayable',
@@ -610,7 +686,13 @@ export const entrypointAbi = [
     type: 'function',
     name: 'scopeToPool',
     inputs: [{ name: '_scope', type: 'uint256', internalType: 'uint256' }],
-    outputs: [{ name: '_pool', type: 'address', internalType: 'contract IPrivacyPool' }],
+    outputs: [
+      {
+        name: '_pool',
+        type: 'address',
+        internalType: 'contract IPrivacyPool',
+      },
+    ],
     stateMutability: 'view',
   },
   {
@@ -624,13 +706,26 @@ export const entrypointAbi = [
     type: 'function',
     name: 'updatePoolConfiguration',
     inputs: [
-      { name: '_asset', type: 'address', internalType: 'contract IERC20' },
+      {
+        name: '_asset',
+        type: 'address',
+        internalType: 'contract IERC20',
+      },
       {
         name: '_minimumDepositAmount',
         type: 'uint256',
         internalType: 'uint256',
       },
-      { name: '_vettingFeeBPS', type: 'uint256', internalType: 'uint256' },
+      {
+        name: '_vettingFeeBPS',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: '_maxRelayFeeBPS',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
     ],
     outputs: [],
     stateMutability: 'nonpayable',
@@ -640,7 +735,7 @@ export const entrypointAbi = [
     name: 'updateRoot',
     inputs: [
       { name: '_root', type: 'uint256', internalType: 'uint256' },
-      { name: '_ipfsHash', type: 'bytes32', internalType: 'bytes32' },
+      { name: '_ipfsCID', type: 'string', internalType: 'string' },
     ],
     outputs: [{ name: '_index', type: 'uint256', internalType: 'uint256' }],
     stateMutability: 'nonpayable',
@@ -649,7 +744,11 @@ export const entrypointAbi = [
     type: 'function',
     name: 'upgradeToAndCall',
     inputs: [
-      { name: 'newImplementation', type: 'address', internalType: 'address' },
+      {
+        name: 'newImplementation',
+        type: 'address',
+        internalType: 'address',
+      },
       { name: 'data', type: 'bytes', internalType: 'bytes' },
     ],
     outputs: [],
@@ -657,8 +756,27 @@ export const entrypointAbi = [
   },
   {
     type: 'function',
+    name: 'usedPrecommitments',
+    inputs: [
+      {
+        name: '_precommitment',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [{ name: '_used', type: 'bool', internalType: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'windDownPool',
-    inputs: [{ name: '_pool', type: 'address', internalType: 'contract IPrivacyPool' }],
+    inputs: [
+      {
+        name: '_pool',
+        type: 'address',
+        internalType: 'contract IPrivacyPool',
+      },
+    ],
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -666,7 +784,11 @@ export const entrypointAbi = [
     type: 'function',
     name: 'withdrawFees',
     inputs: [
-      { name: '_asset', type: 'address', internalType: 'contract IERC20' },
+      {
+        name: '_asset',
+        type: 'address',
+        internalType: 'contract IERC20',
+      },
       { name: '_recipient', type: 'address', internalType: 'address' },
     ],
     outputs: [],
@@ -769,6 +891,12 @@ export const entrypointAbi = [
         indexed: false,
         internalType: 'uint256',
       },
+      {
+        name: '_newMaxRelayFeeBPS',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
     ],
     anonymous: false,
   },
@@ -839,7 +967,12 @@ export const entrypointAbi = [
     type: 'event',
     name: 'RoleAdminChanged',
     inputs: [
-      { name: 'role', type: 'bytes32', indexed: true, internalType: 'bytes32' },
+      {
+        name: 'role',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
+      },
       {
         name: 'previousAdminRole',
         type: 'bytes32',
@@ -859,7 +992,12 @@ export const entrypointAbi = [
     type: 'event',
     name: 'RoleGranted',
     inputs: [
-      { name: 'role', type: 'bytes32', indexed: true, internalType: 'bytes32' },
+      {
+        name: 'role',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
+      },
       {
         name: 'account',
         type: 'address',
@@ -879,7 +1017,12 @@ export const entrypointAbi = [
     type: 'event',
     name: 'RoleRevoked',
     inputs: [
-      { name: 'role', type: 'bytes32', indexed: true, internalType: 'bytes32' },
+      {
+        name: 'role',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
+      },
       {
         name: 'account',
         type: 'address',
@@ -906,10 +1049,10 @@ export const entrypointAbi = [
         internalType: 'uint256',
       },
       {
-        name: '_ipfsHash',
-        type: 'bytes32',
+        name: '_ipfsCID',
+        type: 'string',
         indexed: false,
-        internalType: 'bytes32',
+        internalType: 'string',
       },
       {
         name: '_timestamp',
@@ -989,13 +1132,20 @@ export const entrypointAbi = [
   {
     type: 'error',
     name: 'ERC1967InvalidImplementation',
-    inputs: [{ name: 'implementation', type: 'address', internalType: 'address' }],
+    inputs: [
+      {
+        name: 'implementation',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
   },
   { type: 'error', name: 'ERC1967NonPayable', inputs: [] },
-  { type: 'error', name: 'EmptyIPFSHash', inputs: [] },
   { type: 'error', name: 'EmptyRoot', inputs: [] },
   { type: 'error', name: 'FailedCall', inputs: [] },
+  { type: 'error', name: 'InvalidEntrypointForPool', inputs: [] },
   { type: 'error', name: 'InvalidFeeBPS', inputs: [] },
+  { type: 'error', name: 'InvalidIPFSCIDLength', inputs: [] },
   { type: 'error', name: 'InvalidIndex', inputs: [] },
   { type: 'error', name: 'InvalidInitialization', inputs: [] },
   { type: 'error', name: 'InvalidPoolState', inputs: [] },
@@ -1006,8 +1156,11 @@ export const entrypointAbi = [
   { type: 'error', name: 'NativeAssetTransferFailed', inputs: [] },
   { type: 'error', name: 'NoRootsAvailable', inputs: [] },
   { type: 'error', name: 'NotInitializing', inputs: [] },
+  { type: 'error', name: 'PoolIsDead', inputs: [] },
   { type: 'error', name: 'PoolNotFound', inputs: [] },
+  { type: 'error', name: 'PrecommitmentAlreadyUsed', inputs: [] },
   { type: 'error', name: 'ReentrancyGuardReentrantCall', inputs: [] },
+  { type: 'error', name: 'RelayFeeGreaterThanMax', inputs: [] },
   {
     type: 'error',
     name: 'SafeERC20FailedOperation',
