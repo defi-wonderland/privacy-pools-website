@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Stack, Typography, styled } from '@mui/material';
-import { formatEther } from 'viem';
+import { formatUnits } from 'viem';
 import { ExtendedTooltip as Tooltip, StatusChip } from '~/components';
 import { getConstants } from '~/config/constants';
 import { useAccountContext, usePoolAccountsContext, useChainContext } from '~/hooks';
@@ -11,10 +11,14 @@ export const Resume = () => {
   const { PENDING_STATUS_MESSAGE } = getConstants();
   const { poolAccounts } = useAccountContext();
   const { selectedHistoryData } = usePoolAccountsContext();
-  const { price, chain } = useChainContext();
+  const {
+    price,
+    chain,
+    balanceBN: { decimals },
+  } = useChainContext();
 
-  const amount = formatEther(selectedHistoryData?.amount ?? 0n);
-  const usdBalance = getUsdBalance(price, formatEther(selectedHistoryData?.amount ?? 0n), 18);
+  const amount = formatUnits(selectedHistoryData?.amount ?? 0n, decimals);
+  const usdBalance = getUsdBalance(price, formatUnits(selectedHistoryData?.amount ?? 0n, decimals), decimals);
   const poolAccountName = useMemo(() => {
     const name = poolAccounts.find((pool) => pool.deposit.label === selectedHistoryData?.label)?.name;
     return name ? `PA-${name}` : 'Unknown Pool Account';

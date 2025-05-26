@@ -16,7 +16,7 @@ import {
   Typography,
   Box,
 } from '@mui/material';
-import { formatEther } from 'viem';
+import { formatUnits } from 'viem';
 import { useAccount } from 'wagmi';
 import { DottedMenu, ExtendedTooltip as Tooltip, StatusChip } from '~/components';
 import { getConstants } from '~/config/constants';
@@ -28,7 +28,7 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
   const { PENDING_STATUS_MESSAGE: statusMessage } = getConstants();
   const { setActionType, setPoolAccount, setAmount, setTarget } = usePoolAccountsContext();
   const {
-    chain: { decimals, symbol },
+    balanceBN: { symbol, decimals },
   } = useChainContext();
   const { address } = useAccount();
   const { setModalOpen } = useModal();
@@ -61,7 +61,7 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
 
     setTarget(address);
     setPoolAccount(foundAccount);
-    setAmount(formatEther(poolAccount.balance));
+    setAmount(formatUnits(poolAccount.balance, decimals));
     setActionType(EventType.EXIT);
     setModalOpen(ModalType.GENERATE_ZK_PROOF);
     handleClose();
@@ -117,12 +117,12 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
 
             <TableBody>
               {records?.map((row) => (
-                <STableRow key={row.label.toString()}>
+                <STableRow key={row.label.toString() + row.lastCommitment.hash}>
                   {/* Temporary hardcoded pool account identifier */}
                   <STableCell sx={{ paddingLeft: 0 }}>{`PA-${row.name}`}</STableCell>
 
                   <STableCell sx={{ whiteSpace: 'nowrap' }}>
-                    <Tooltip title={formatEther(row.balance)} placement='top' disableInteractive>
+                    <Tooltip title={formatUnits(row.balance, decimals)} placement='top' disableInteractive>
                       <Typography variant='caption'>{`${formatDataNumber(row.balance, decimals, 3, false, true, false)} ${symbol}`}</Typography>
                     </Tooltip>
                   </STableCell>

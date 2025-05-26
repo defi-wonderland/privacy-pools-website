@@ -62,7 +62,8 @@ export const PoolAccountsContext = createContext({} as ContextType);
 export const PoolAccountsProvider = ({ children }: Props) => {
   const {
     chainId,
-    chain: { poolInfo, rpcUrl },
+    chain: { rpcUrl },
+    selectedPoolInfo,
   } = useChainContext();
 
   const [actionType, setActionType] = useState<EventType>();
@@ -96,8 +97,8 @@ export const PoolAccountsProvider = ({ children }: Props) => {
   };
 
   const { data: assetConfigs, isLoading: isAssetConfigLoading } = useQuery({
-    queryKey: ['assetConfigs', chainId, poolInfo.scope.toString()],
-    enabled: !!poolInfo,
+    queryKey: ['assetConfigs', chainId, selectedPoolInfo.scope.toString()],
+    enabled: !!selectedPoolInfo,
     queryFn: async () => {
       const publicClient = createPublicClient({
         chain: whitelistedChains.find((chain) => chain.id === chainId),
@@ -105,10 +106,10 @@ export const PoolAccountsProvider = ({ children }: Props) => {
       });
 
       const config = await publicClient.readContract({
-        address: getAddress(poolInfo.entryPointAddress),
+        address: getAddress(selectedPoolInfo.entryPointAddress),
         abi: assetConfig,
         functionName: 'assetConfig',
-        args: [poolInfo.assetAddress],
+        args: [selectedPoolInfo.assetAddress],
       });
 
       if (!config) return;

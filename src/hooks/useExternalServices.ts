@@ -6,8 +6,9 @@ import { useASP, useRelayer, useChainContext } from '~/hooks';
 export const useExternalServices = () => {
   const {
     chainId,
-    chain: { poolInfo, aspUrl },
     selectedRelayer,
+    chain: { aspUrl },
+    selectedPoolInfo,
     relayersData,
   } = useChainContext();
 
@@ -15,8 +16,9 @@ export const useExternalServices = () => {
     return relayersData.find((r) => r.url === selectedRelayer?.url);
   }, [relayersData, selectedRelayer]);
 
-  const aspData = useASP(chainId, poolInfo.scope.toString(), aspUrl);
   const relayerData = useRelayer();
+
+  const aspData = useASP(chainId, selectedPoolInfo.scope.toString(), aspUrl);
 
   const isLoading = aspData.isLoading || relayerData.isQuoteLoading;
 
