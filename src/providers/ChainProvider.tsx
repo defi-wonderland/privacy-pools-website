@@ -4,7 +4,7 @@ import { createContext, useEffect, useMemo, useState, useRef } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { parseEther } from 'viem';
 import { useAccount, useBalance } from 'wagmi';
-import { ChainData, chainData, ChainAssets, whitelistedChains, PoolInfo } from '~/config';
+import { ChainData, chainData, ChainAssets, whitelistedChains, PoolInfo, getConfig } from '~/config';
 import { useNotifications } from '~/hooks';
 import { fetchTokenPrice, relayerClient } from '~/utils';
 
@@ -44,6 +44,9 @@ type ContextType = {
 interface Props {
   children: React.ReactNode;
 }
+const {
+  constants: { DEFAULT_ASSET },
+} = getConfig();
 
 export const ChainContext = createContext({} as ContextType);
 
@@ -53,7 +56,7 @@ export const ChainProvider = ({ children }: Props) => {
   const { addNotification } = useNotifications();
   const [balanceInPoolBN, setBalanceInPool] = useState<string>(parseEther('100').toString());
   const [price, setPrice] = useState<number>(0);
-  const [selectedAsset, setSelectedAsset] = useState<ChainAssets>('ETH');
+  const [selectedAsset, setSelectedAsset] = useState<ChainAssets>(DEFAULT_ASSET);
   const [selectedRelayer, setSelectedRelayer] = useState<SelectedRelayerType | undefined>(
     () => chainData[chainId].relayers[0],
   );
@@ -70,7 +73,7 @@ export const ChainProvider = ({ children }: Props) => {
   const { data: userBalance } = useBalance({
     address,
     chainId,
-    token: selectedAsset === 'ETH' ? undefined : selectedPoolInfo.assetAddress,
+    token: selectedAsset === DEFAULT_ASSET ? undefined : selectedPoolInfo.assetAddress,
   });
 
   const balanceBN = useMemo(() => {

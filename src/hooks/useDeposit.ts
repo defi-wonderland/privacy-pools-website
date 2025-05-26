@@ -11,6 +11,7 @@ import { useModal } from './useModal';
 
 const {
   env: { TEST_MODE },
+  constants: { DEFAULT_ASSET },
 } = getConfig();
 
 export const useDeposit = () => {
@@ -50,7 +51,7 @@ export const useDeposit = () => {
 
       let assetAllowance = 0n;
 
-      if (selectedPoolInfo.asset !== 'ETH') {
+      if (selectedPoolInfo.asset !== DEFAULT_ASSET) {
         assetAllowance = await allowance(selectedPoolInfo.assetAddress, address, selectedPoolInfo.entryPointAddress);
       }
 
@@ -67,7 +68,7 @@ export const useDeposit = () => {
           throw new Error('Missing required data to deposit');
 
         // Allowance check
-        if (assetAllowance < value && selectedPoolInfo.asset !== 'ETH') {
+        if (assetAllowance < value && selectedPoolInfo.asset !== DEFAULT_ASSET) {
           addNotification('info', 'Allowance insufficient. Requesting approval...');
           const approveHash = await walletClient.writeContract({
             address: selectedPoolInfo.assetAddress,
@@ -83,7 +84,7 @@ export const useDeposit = () => {
 
         let hash: ViemHash;
 
-        if (selectedPoolInfo.asset === 'ETH') {
+        if (selectedPoolInfo.asset === DEFAULT_ASSET) {
           const { request } = await publicClient.simulateContract({
             account: address,
             address: getAddress(selectedPoolInfo.entryPointAddress),
