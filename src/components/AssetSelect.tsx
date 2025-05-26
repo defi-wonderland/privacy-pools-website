@@ -1,30 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { FormControl, MenuItem, Select, styled, SelectChangeEvent } from '@mui/material';
+import { ChainAssets } from '~/config';
+import { useChainContext } from '~/hooks/context/useChainContext';
 import { EtherIcon } from '~/assets/coins/ether';
 
 export interface Option {
-  value: string;
+  value: ChainAssets;
   label: string;
   icon?: React.ReactNode;
 }
 
-// TODO: Replace with global state management
-// This component will use global state to manage the selected asset across the application
-// The global state should provide:
-// 1. The currently selected asset
-// 2. A function to change the selected asset
-// 3. Available asset options
-
-// Testing purposes - these will be moved to the global state later
-const DEFAULT_TOKEN_OPTIONS = [
+const DEFAULT_TOKEN_OPTIONS: Option[] = [
   { value: 'ETH', label: 'ETH', icon: <EtherIcon /> },
   { value: 'USDC', label: 'USDC' },
-  { value: 'DAI', label: 'DAI' },
 ];
-
-const DEFAULT_ASSET = 'ETH';
 
 const MENU_STYLING = {
   MenuListProps: {
@@ -41,17 +32,11 @@ export interface AssetSelectProps {
   options?: Option[];
 }
 
-export const AssetSelect: React.FC<AssetSelectProps> = ({ value = DEFAULT_ASSET, options = DEFAULT_TOKEN_OPTIONS }) => {
-  // Local state - will be replaced with global state
-  const [selectedAsset, setSelectedAsset] = useState(value);
-
-  // This will be replaced with a hook to access global state
-  // const { selectedAsset, setSelectedAsset, availableAssets } = useAssetContext();
+export const AssetSelect: React.FC<AssetSelectProps> = ({ options = DEFAULT_TOKEN_OPTIONS }) => {
+  const { selectedAsset, setSelectedAsset } = useChainContext();
 
   const handleChange = (event: SelectChangeEvent<unknown>) => {
-    setSelectedAsset(event.target.value as string);
-    // When global state is implemented, this will update the global state
-    // setSelectedAsset(event.target.value as string);
+    setSelectedAsset(event.target.value as ChainAssets);
   };
 
   return (

@@ -30,13 +30,13 @@ if (typeof window !== 'undefined') {
   baseUrl = window.location.origin;
 }
 
-const chainDataByWhitelistedChains = Object.values(chainData).filter((chain) =>
-  whitelistedChains.some((c) => c.id === chain.poolInfo.chainId),
+const chainDataByWhitelistedChains = Object.values(chainData).filter(
+  (chain) => chain.poolInfo.length > 0 && whitelistedChains.some((c) => c.id === chain.poolInfo[0].chainId),
 );
 
-const poolsByChain = chainDataByWhitelistedChains.map(
+const poolsByChain = chainDataByWhitelistedChains.flatMap(
   (chain) => chain.poolInfo,
-) as ChainData[keyof ChainData]['poolInfo'][];
+) as ChainData[keyof ChainData]['poolInfo'];
 
 const circuits = new Circuits({ baseUrl });
 const sdk = new PrivacyPoolSDK(circuits);
@@ -56,6 +56,7 @@ const dataServiceConfig: ChainConfig[] = poolsByChain.map((pool) => {
     privacyPoolAddress: pool.address,
     startBlock: pool.deploymentBlock,
     rpcUrl: chainData[pool.chainId].sdkRpcUrl,
+    apiKey: 'sdk', // It's not an api key https://viem.sh/docs/clients/public#key-optional
   };
 });
 const dataService = new DataService(dataServiceConfig);
@@ -127,17 +128,15 @@ export const verifyWithdrawalProof = async (proof: WithdrawalProof) => {
 };
 
 export const createAccount = (seed: string) => {
-  const accountService = new AccountService(dataService, { mnemonic: seed });
+  const accountService = new AccountService(dataService, seed);
 
   return accountService;
 };
 
 export const loadAccount = async (seed: string) => {
-  const accountService = new AccountService(dataService, { mnemonic: seed });
-
-  const service = await AccountService.initializeWithEvents(dataService, { service: accountService }, pools);
-
-  return service.account;
+  const accountService = new AccountService(dataService, seed);
+  await accountService.retrieveHistory(pools);
+  return accountService;
 };
 
 export const createDepositSecrets = (accountService: AccountService, scope: Hash, index: bigint) => {
@@ -222,7 +221,9 @@ export const getPoolAccountsFromAccount = async (account: PrivacyPoolAccount, ch
       const lastCommitment =
         poolAccount.children.length > 0 ? poolAccount.children[poolAccount.children.length - 1] : poolAccount.deposit;
 
-      const _chainId = Object.keys(chainData).find((key) => chainData[Number(key)].poolInfo.scope === _scope);
+      const _chainId = Object.keys(chainData).find((key) =>
+        chainData[Number(key)].poolInfo.some((pool) => pool.scope === _scope),
+      );
 
       const updatedPoolAccount = {
         ...(poolAccount as PoolAccount),

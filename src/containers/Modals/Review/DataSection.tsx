@@ -1,6 +1,6 @@
 'use client';
 import { Stack, styled, Typography } from '@mui/material';
-import { formatEther, formatUnits, parseEther, parseUnits } from 'viem';
+import { formatUnits, parseUnits } from 'viem';
 import { useAccount } from 'wagmi';
 import { ExtendedTooltip as Tooltip } from '~/components';
 import { useExternalServices, usePoolAccountsContext, useChainContext } from '~/hooks';
@@ -10,8 +10,9 @@ import { getUsdBalance, truncateAddress } from '~/utils';
 export const DataSection = () => {
   const { address } = useAccount();
   const {
-    chain: { symbol, decimals, poolInfo },
+    balanceBN: { symbol, decimals },
     price,
+    selectedPoolInfo,
   } = useChainContext();
   const { currentSelectedRelayerData } = useExternalServices();
   const { amount, target, actionType, poolAccount, vettingFeeBPS, feeBPSForWithdraw } = usePoolAccountsContext();
@@ -32,12 +33,14 @@ export const DataSection = () => {
   const feeUSD = getUsdBalance(price, feeFormatted, decimals);
   const feeText = `${feeFormatted} ${symbol} (~ ${feeUSD} USD)`;
 
-  const feesCollectorAddress = isDeposit ? poolInfo.entryPointAddress : currentSelectedRelayerData?.relayerAddress;
+  const feesCollectorAddress = isDeposit
+    ? selectedPoolInfo.entryPointAddress
+    : currentSelectedRelayerData?.relayerAddress;
   const feesCollector = `OxBow (${truncateAddress(feesCollectorAddress)})`;
 
   const amountUSD = getUsdBalance(price, amount, decimals);
-  const amountWithFeeBN = parseEther(amount) - fees;
-  const amountWithFee = formatEther(amountWithFeeBN);
+  const amountWithFeeBN = parseUnits(amount, decimals) - fees;
+  const amountWithFee = formatUnits(amountWithFeeBN, decimals);
   const amountWithFeeUSD = getUsdBalance(price, amountWithFee, decimals);
 
   const valueText = `${amountWithFee} ${symbol} (~ ${amountWithFeeUSD} USD)`;
