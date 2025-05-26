@@ -47,14 +47,21 @@ export const useDeposit = () => {
         if (!walletClient || !publicClient) throw new Error('Wallet or Public client not found');
         if (!poolInfo.scope || !precommitmentHash || !value) throw new Error('Missing required data to deposit');
 
-        const { request } = await publicClient.simulateContract({
-          account: address,
-          address: getAddress(poolInfo.entryPointAddress),
-          abi: entrypointAbi,
-          functionName: 'deposit',
-          args: [precommitmentHash],
-          value,
-        });
+        const { request } = await publicClient
+          .simulateContract({
+            account: address,
+            address: getAddress(poolInfo.entryPointAddress),
+            abi: entrypointAbi,
+            functionName: 'deposit',
+            args: [precommitmentHash],
+            value,
+          })
+          .catch((err) => {
+            if (err?.metaMessages[0] == 'Error: PrecommitmentAlreadyUsed()') {
+              throw new Error('Precommitment already used');
+            }
+            throw err;
+          });
 
         const hash = await walletClient.writeContract(request);
 
