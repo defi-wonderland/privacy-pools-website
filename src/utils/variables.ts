@@ -1,7 +1,3 @@
-import { getEnv } from '~/config/env';
-
-const { SHOW_DISCLAIMER } = getEnv();
-
 /*=============================================
 =               Style Variables               =
 =============================================*/
@@ -22,8 +18,6 @@ export const zIndex = {
   TOAST: 500,
 };
 
-export const HEADER_HEIGHT = 6; // Header height in rem units
-
-export const DYNAMIC_HEADER_HEIGHT = SHOW_DISCLAIMER ? 10 : 6; // Header height in rem units (with disclaimer)
+export const HEADER_HEIGHT = { default: 6, withDisclaimer: 10 }; // Header height in rem units
 
 export const FOOTER_HEIGHT = 4.8; // Footer height in rem units

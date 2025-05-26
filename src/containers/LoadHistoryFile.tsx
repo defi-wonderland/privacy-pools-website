@@ -5,7 +5,7 @@ import { Button, Stack, styled, Typography } from '@mui/material';
 import { BackButton } from '~/components';
 import { SeedPhraseForm } from '~/containers/SeedPhraseForm';
 import { useAuthContext, useGoTo, useAccountContext, useNotifications } from '~/hooks';
-import { DYNAMIC_HEADER_HEIGHT, FOOTER_HEIGHT, ROUTER, verifyAndSanitizeSeedPhrase } from '~/utils';
+import { FOOTER_HEIGHT, ROUTER, verifyAndSanitizeSeedPhrase } from '~/utils';
 
 export const LoadHistoryFile = () => {
   const goTo = useGoTo();
@@ -126,10 +126,10 @@ const Container = styled('div')(() => ({
   position: 'relative',
   width: '100%',
   height: '100%',
-  minHeight: `calc(100vh - var(--header-height, ${DYNAMIC_HEADER_HEIGHT}rem) - ${FOOTER_HEIGHT}rem)`,
+  minHeight: `calc(100vh - var(--header-height) - ${FOOTER_HEIGHT}rem)`,
   '@supports (height: 100dvh)': {
     height: '100%',
-    minHeight: `calc(100dvh - var(--header-height, ${DYNAMIC_HEADER_HEIGHT}rem) - ${FOOTER_HEIGHT}rem)`,
+    minHeight: `calc(100dvh - var(--header-height) - ${FOOTER_HEIGHT}rem)`,
   },
   display: 'flex',
   alignItems: 'center',

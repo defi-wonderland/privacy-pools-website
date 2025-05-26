@@ -2,6 +2,7 @@
 
 import { CssBaseline, GlobalStyles, ThemeProvider as MuiThemeProvider } from '@mui/material';
 import { getConfig } from '~/config';
+import { HEADER_HEIGHT } from '~/utils';
 
 interface StateProps {
   children: React.ReactElement;
@@ -19,6 +20,9 @@ export const ThemeProvider = ({ children }: StateProps) => {
         styles={{
           'html.light body, html.dark body': {
             '--wcm-z-index': '400', // wallet connect modal z-index
+          },
+          body: {
+            '--header-height': HEADER_HEIGHT.default + 'rem',
           },
         }}
       />
