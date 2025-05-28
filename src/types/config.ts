@@ -9,6 +9,7 @@ export interface Env {
   SHOW_DISCLAIMER: boolean;
   IS_TESTNET: boolean;
   GITHUB_HASH: string;
+  HYPERSYNC_KEY: string;
 }
 
 export interface Constants {
