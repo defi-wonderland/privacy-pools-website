@@ -1,7 +1,7 @@
 'use client';
 
 import { Stack, styled, Typography } from '@mui/material';
-import { DYNAMIC_HEADER_HEIGHT, FOOTER_HEIGHT } from '~/utils';
+import { FOOTER_HEIGHT } from '~/utils';
 
 export default function Loading() {
   return (
@@ -23,10 +23,10 @@ const Container = styled('div')(() => ({
   position: 'relative',
   width: '100%',
   height: '100%',
-  minHeight: `calc(100vh - var(--header-height, ${DYNAMIC_HEADER_HEIGHT}rem) - ${FOOTER_HEIGHT}rem)`,
+  minHeight: `calc(100vh - var(--header-height) - ${FOOTER_HEIGHT}rem)`,
   '@supports (height: 100dvh)': {
     height: '100%',
-    minHeight: `calc(100dvh - var(--header-height, ${DYNAMIC_HEADER_HEIGHT}rem) - ${FOOTER_HEIGHT}rem)`,
+    minHeight: `calc(100dvh - var(--header-height) - ${FOOTER_HEIGHT}rem)`,
   },
   display: 'flex',
   justifyContent: 'center',

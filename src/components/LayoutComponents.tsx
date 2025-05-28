@@ -1,7 +1,6 @@
 'use client';
 
 import { styled } from '@mui/material';
-import { DYNAMIC_HEADER_HEIGHT } from '~/utils';
 import backgroundImage from '~/assets/background.png';
 
 export const PageWrapper = styled('main')(({ theme }) => {
@@ -24,7 +23,7 @@ export const PageWrapper = styled('main')(({ theme }) => {
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
     [theme.breakpoints.down('sm')]: {
-      paddingTop: `var(--header-height, ${DYNAMIC_HEADER_HEIGHT}rem)`,
+      paddingTop: `var(--header-height)`,
     },
   };
 });

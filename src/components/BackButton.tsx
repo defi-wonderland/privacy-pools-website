@@ -2,7 +2,6 @@
 
 import { Close, ChevronLeft } from '@carbon/icons-react';
 import { IconButton, styled } from '@mui/material';
-import { DYNAMIC_HEADER_HEIGHT } from '~/utils';
 
 interface BackButtonProps {
   back: () => void;
@@ -40,7 +39,7 @@ const SCloseButton = styled(IconButton)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
     marginBottom: '0',
     marginLeft: '0',
-    top: `calc(var(--header-height, ${DYNAMIC_HEADER_HEIGHT}rem) + 2rem)`,
+    top: `calc(var(--header-height) + 2rem)`,
     left: '2rem',
     right: 'unset',
 
