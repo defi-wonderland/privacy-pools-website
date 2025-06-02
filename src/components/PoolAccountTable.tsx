@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, MouseEvent } from 'react';
+import { useState, MouseEvent, useEffect } from 'react';
 import { OverflowMenuVertical } from '@carbon/icons-react';
 import {
   styled,
@@ -37,6 +37,12 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  useEffect(() => {
+    if (isLoading || !records.length) {
+      setAnchorEl([]);
+    }
+  }, [isLoading, records.length]);
 
   const handleToggle = (event: MouseEvent<HTMLElement>, index: number) => {
     const newAnchorEl = Array(poolAccounts.length).fill(null);
