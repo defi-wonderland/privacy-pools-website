@@ -28,7 +28,7 @@ export const useAdvancedView = () => {
   const currentPage = Number(searchParams.get('page') || 1);
 
   const allEventsByPageQuery = useQuery({
-    queryKey: ['asp_all_events_by_page', currentPage, chainId],
+    queryKey: ['asp_all_events_by_page', currentPage, chainId, selectedPoolInfo.scope.toString()],
     queryFn: () => aspClient.fetchAllEvents(aspUrl, chainId, selectedPoolInfo.scope.toString(), currentPage),
     refetchInterval: 60000,
     retryOnMount: false,
