@@ -7,11 +7,14 @@ import { useExternalServices, useChainContext } from '~/hooks';
 
 export const GlobalPool = () => {
   const {
-    balanceBN: { symbol, decimals },
+    balanceBN: { symbol, decimals: balanceDecimals },
+    selectedPoolInfo: { assetDecimals },
   } = useChainContext();
   const {
     aspData: { poolsData },
   } = useExternalServices();
+
+  const decimals = assetDecimals ?? balanceDecimals ?? 18;
 
   const poolBalance = Number(formatUnits(BigInt(poolsData?.totalInPoolValue || 0), decimals)).toFixed(2);
 
