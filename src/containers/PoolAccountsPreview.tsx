@@ -92,12 +92,14 @@ export const PoolAccountsPreview = () => {
                 </ViewAllButton>
               )}
 
-              <ViewAllButton
-                onClick={handleNavigateToPoolAccounts}
-                disabled={poolsByAssetAndChain && !poolsByAssetAndChain.length}
-              >
-                <ViewAllText>View All</ViewAllText>
-              </ViewAllButton>
+              {isConnected && isLogged && (
+                <ViewAllButton
+                  onClick={handleNavigateToPoolAccounts}
+                  disabled={poolsByAssetAndChain && !poolsByAssetAndChain.length}
+                >
+                  <ViewAllText>View All</ViewAllText>
+                </ViewAllButton>
+              )}
             </Stack>
           </Stack>
 
