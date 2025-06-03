@@ -27,7 +27,7 @@ export const PoolAccountsPreview = () => {
   } = useAccountContext();
   const { previewPoolAccounts } = useAdvancedView();
   const { setModalOpen } = useModal();
-  const { isLogged, isConnected } = useAuthContext();
+  const { isLogged, isConnected, isAuthorized } = useAuthContext();
   const goTo = useGoTo();
 
   const handleShowEmptyPools = () => {
@@ -92,7 +92,7 @@ export const PoolAccountsPreview = () => {
                 </ViewAllButton>
               )}
 
-              {isConnected && isLogged && (
+              {isAuthorized && (
                 <ViewAllButton
                   onClick={handleNavigateToPoolAccounts}
                   disabled={poolsByAssetAndChain && !poolsByAssetAndChain.length}
