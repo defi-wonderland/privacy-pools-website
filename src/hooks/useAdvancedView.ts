@@ -51,7 +51,7 @@ export const useAdvancedView = () => {
     return hideEmptyPools
       ? poolAccounts.filter((account) => formatUnits(account.balance, decimals) !== '0')
       : poolAccounts;
-  }, [poolAccounts, hideEmptyPools, selectedPoolInfo.scope, decimals]);
+  }, [poolAccounts, hideEmptyPools, decimals]);
 
   // Ordered pool accounts from newest to oldest and filter by selectedPoolInfo.scope
   const orderedPoolAccounts = useMemo(
@@ -62,7 +62,7 @@ export const useAdvancedView = () => {
     [filteredPoolAccounts, selectedPoolInfo.scope],
   );
 
-  const fullPoolAccounts = useMemo(() => orderedPoolAccounts, [orderedPoolAccounts, selectedPoolInfo.scope]);
+  const fullPoolAccounts = useMemo(() => orderedPoolAccounts, [orderedPoolAccounts]);
   const previewPoolAccounts = useMemo(() => orderedPoolAccounts.slice(0, 6), [orderedPoolAccounts]);
 
   const fullPersonalActivity = useMemo(() => orderedPersonalActivity, [orderedPersonalActivity]);

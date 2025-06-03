@@ -276,6 +276,7 @@ export const AccountProvider = ({ children }: Props) => {
         fetchAndProcessDeposits(currentScopeAccounts);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aspIsLoading, selectedPoolInfo.scope]);
 
   useEffect(() => {
