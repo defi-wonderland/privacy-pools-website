@@ -13,9 +13,11 @@ export const Resume = () => {
   const { selectedHistoryData } = usePoolAccountsContext();
   const {
     price,
-    chain,
-    balanceBN: { decimals },
+    balanceBN: { decimals: balanceDecimals },
+    selectedPoolInfo: { assetDecimals, asset },
   } = useChainContext();
+
+  const decimals = assetDecimals ?? balanceDecimals ?? 18;
 
   const amount = formatUnits(selectedHistoryData?.amount ?? 0n, decimals);
   const usdBalance = getUsdBalance(price, formatUnits(selectedHistoryData?.amount ?? 0n, decimals), decimals);
@@ -34,7 +36,7 @@ export const Resume = () => {
       <Stack direction='column' alignItems='start' gap='0.8rem'>
         <EthText variant='h6'>
           {amount}
-          <span>{chain.symbol}</span>
+          <span>{asset}</span>
         </EthText>
         <BalanceUsd variant='body2'>{`~ ${usdBalance}`}</BalanceUsd>
       </Stack>

@@ -9,10 +9,9 @@ import { formatDataNumber, formatTimestamp, getUsdBalance, truncateAddress } fro
 
 export const DataSection = () => {
   const {
-    chain: { symbol },
-    selectedPoolInfo,
+    selectedPoolInfo: { assetDecimals, asset, entryPointAddress },
+    balanceBN: { decimals: balanceDecimals },
     price,
-    balanceBN: { decimals },
   } = useChainContext();
   const { vettingFeeBPS, selectedHistoryData } = usePoolAccountsContext();
   const { currentSelectedRelayerData } = useExternalServices();
@@ -28,6 +27,8 @@ export const DataSection = () => {
   // const fromAddress = isDeposit ? selectedHistoryData?.address : '';
   // const toAddress = isDeposit ? '' : selectedHistoryData?.address;
 
+  const decimals = assetDecimals ?? balanceDecimals ?? 18;
+
   const feeBps = isDeposit ? vettingFeeBPS : BigInt(currentSelectedRelayerData?.fees ?? 0n);
   const amountInWei = BigInt(selectedHistoryData?.amount ?? 0n);
 
@@ -38,20 +39,18 @@ export const DataSection = () => {
 
   const feeFormatted = formatDataNumber(fees, decimals);
   const feeUSD = getUsdBalance(price, formatUnits(fees, decimals), decimals);
-  const feeText = `${feeFormatted} ${symbol} (~ ${feeUSD} USD)`;
+  const feeText = `${feeFormatted} ${asset} (~ ${feeUSD} USD)`;
 
-  const feesCollectorAddress = isDeposit
-    ? selectedPoolInfo.entryPointAddress
-    : currentSelectedRelayerData?.relayerAddress;
+  const feesCollectorAddress = isDeposit ? entryPointAddress : currentSelectedRelayerData?.relayerAddress;
   const feesCollector = `OxBow (${truncateAddress(feesCollectorAddress ?? '0x')})`;
 
   const totalText = isDeposit ? formatUnits(originalAmount, decimals) : formatUnits(amountInWei, decimals);
   const totalUSD = getUsdBalance(price, totalText, decimals);
-  const valueText = `~${totalText.slice(0, 6)} ${symbol} (~ ${totalUSD} USD)`;
+  const valueText = `~${totalText.slice(0, 6)} ${asset} (~ ${totalUSD} USD)`;
 
   const amountWithFee = originalAmount - fees;
   const amountWithFeeUSD = getUsdBalance(price, formatUnits(amountWithFee, decimals), decimals);
-  const receivedText = `${formatUnits(amountWithFee, decimals)} ${symbol} (~ ${amountWithFeeUSD} USD)`;
+  const receivedText = `${formatUnits(amountWithFee, decimals)} ${asset} (~ ${amountWithFeeUSD} USD)`;
 
   // const poolAccountName = useMemo(() => {
   //   const name = poolAccounts.find((pool) => pool.label === selectedHistoryData?.commitment?.preimage?.label)?.name;
