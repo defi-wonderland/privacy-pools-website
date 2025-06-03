@@ -53,8 +53,11 @@ export const SeedPhraseForm = ({
   }, [seedPhrase, setSeedPhrase]);
 
   const changeSeedPhraseWord = (text: string, index: number) => {
+    // Trim whitespace from the input
+    text = text.trim();
+
     // Check if the text contains multiple words (was pasted)
-    const words = text.trim().split(/\s+/);
+    const words = text.split(/\s+/);
 
     if (words.length > 1) {
       // If it's exactly 12 words, fill all inputs
@@ -72,6 +75,12 @@ export const SeedPhraseForm = ({
 
       return newSplitSeedPhrase;
     });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === ' ') {
+      e.preventDefault();
+    }
   };
 
   useEffect(() => {
@@ -105,6 +114,7 @@ export const SeedPhraseForm = ({
                     type={isHidden && type === 'create' ? 'password' : 'text'}
                     value={splitSeedPhrase[index] ?? ''}
                     onChange={(e) => changeSeedPhraseWord(e.target.value, index)}
+                    onKeyDown={handleKeyDown}
                     startAdornment={<InputAdornment position='start'>{index + 1}.</InputAdornment>}
                   />
                 </FormControl>
