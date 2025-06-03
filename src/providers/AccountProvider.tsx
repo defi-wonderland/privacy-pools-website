@@ -53,7 +53,7 @@ export const AccountProvider = ({ children }: Props) => {
   const { selectedPoolInfo } = useChainContext();
   const { addNotification } = useNotifications();
   const {
-    aspData: { mtLeavesData, fetchDepositsByLabel, refetchMtLeaves, isError: aspError },
+    aspData: { mtLeavesData, fetchDepositsByLabel, refetchMtLeaves, isError: aspError, isLoading: aspIsLoading },
   } = useExternalServices();
   const { poolAccount, setPoolAccount } = usePoolAccountsContext();
 
@@ -247,8 +247,12 @@ export const AccountProvider = ({ children }: Props) => {
 
     const newPoolAccounts = poolAccountsByChainScope[`${selectedPoolInfo.chainId}-${selectedPoolInfo.scope}`];
     if (!!newPoolAccounts) {
+      setIsLoading(true);
       setPoolAccounts(newPoolAccounts);
-      fetchAndProcessDeposits(newPoolAccounts);
+      // Don't call fetchAndProcessDeposits if ASP is still loading the new scope data
+      if (!aspIsLoading) {
+        fetchAndProcessDeposits(newPoolAccounts);
+      }
     } else {
       if (poolAccounts.length > 0) {
         setPoolAccounts([]);
@@ -260,7 +264,20 @@ export const AccountProvider = ({ children }: Props) => {
     poolAccounts,
     poolAccountsByChainScope,
     fetchAndProcessDeposits,
+    aspIsLoading,
   ]);
+
+  // Handle when ASP loading completes
+  useEffect(() => {
+    if (!aspIsLoading && poolAccounts.length > 0 && accountServiceRef.current) {
+      // Check if we have pool accounts for the current scope that need processing
+      const currentScopeAccounts = poolAccounts.filter((pa) => pa.scope === selectedPoolInfo.scope);
+      if (currentScopeAccounts.length > 0) {
+        fetchAndProcessDeposits(currentScopeAccounts);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aspIsLoading, selectedPoolInfo.scope]);
 
   useEffect(() => {
     if (aspError) {
