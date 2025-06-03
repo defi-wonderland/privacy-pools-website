@@ -30,7 +30,7 @@ export const WithdrawForm = () => {
 
   const {
     chain: { image },
-    balanceBN: { symbol, decimals },
+    balanceBN: { symbol, decimals: balanceDecimals },
     selectedPoolInfo,
     chainId,
     selectedRelayer,
@@ -44,6 +44,8 @@ export const WithdrawForm = () => {
   const { amount, setAmount, target, setTarget, poolAccount, setPoolAccount, setFeeCommitment, setFeeBPSForWithdraw } =
     usePoolAccountsContext();
   const { poolAccounts } = useAccountContext();
+
+  const decimals = selectedPoolInfo?.assetDecimals ?? balanceDecimals ?? 18;
 
   const filteredPoolAccounts = poolAccounts.filter((pa) => pa.balance > 0n);
 
