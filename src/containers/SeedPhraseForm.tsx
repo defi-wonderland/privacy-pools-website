@@ -57,7 +57,7 @@ export const SeedPhraseForm = ({
     text = text.trim();
 
     // Check if the text contains multiple words (was pasted)
-    const words = text.trim().split(/\s+/);
+    const words = text.split(/\s+/);
 
     if (words.length > 1) {
       // If it's exactly 12 words, fill all inputs
