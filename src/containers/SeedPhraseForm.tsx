@@ -46,18 +46,20 @@ export const SeedPhraseForm = ({
 
   const pasteFromClipboard = useCallback(() => {
     navigator.clipboard.readText().then((text) => {
-      if (text === seedPhrase) return;
+      const cleanedText = text.trim().replace(/\s+/g, ' ');
+
+      if (cleanedText === seedPhrase) return;
+
       setSplitSeedPhrase([]); // reset this state to avoid infinite loop
-      setSeedPhrase(text);
+      setSeedPhrase(cleanedText);
     });
   }, [seedPhrase, setSeedPhrase]);
 
   const changeSeedPhraseWord = (text: string, index: number) => {
-    // Trim whitespace from the input
-    text = text.trim();
+    text = text.trim().replace(/\s+/g, ' ');
 
     // Check if the text contains multiple words (was pasted)
-    const words = text.split(/\s+/);
+    const words = text.split(/\s+/).filter((word) => word.length > 0);
 
     if (words.length > 1) {
       // If it's exactly 12 words, fill all inputs
