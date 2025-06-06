@@ -26,8 +26,14 @@ dist-ssr
 *.sw?
 
 .eslintcache
-.env
 tsconfig.tsbuildinfo
+
+# Local env files
+.env
+
+# dotenvx encryption keys
+.env.keys
+**/.env.keys
 
 # Cypress
 cypress/screenshots

@@ -1,6 +1,6 @@
 import { defineWalletSetup } from '@synthetixio/synpress';
 import { MetaMask } from '@synthetixio/synpress/playwright';
-import 'dotenv/config';
+import '@dotenvx/dotenvx/config';
 
 const SEED_PHRASE = process.env.SEED_PHRASE || "";
 const PASSWORD = process.env.WALLET_PASSWORD || "";
