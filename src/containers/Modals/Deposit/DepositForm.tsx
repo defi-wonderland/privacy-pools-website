@@ -16,7 +16,6 @@ import {
   Typography,
 } from '@mui/material';
 import { formatUnits, parseUnits } from 'viem';
-import { mainnet, sepolia } from 'viem/chains';
 import { getConstants } from '~/config/constants';
 import { useChainContext, useModal, usePoolAccountsContext } from '~/hooks';
 import { ModalType } from '~/types';
@@ -30,11 +29,10 @@ export const DepositForm = () => {
   const { setModalOpen } = useModal();
   const [asp, setAsp] = useState(ASP_OPTIONS[0]);
   const {
-    chain: { image },
     balanceBN: { value: balance, symbol, formatted: balanceFormatted, decimals },
     price: currentPrice,
     maxDeposit,
-    chainId,
+    selectedPoolInfo,
   } = useChainContext();
   const { amount, setAmount, minimumDepositAmount, vettingFeeBPS, isAssetConfigLoading } = usePoolAccountsContext();
   const [inputAmount, setInputAmount] = useState('');
@@ -92,15 +90,24 @@ export const DepositForm = () => {
   };
 
   const chainIcon = useMemo(() => {
-    if (chainId === sepolia.id || chainId === mainnet.id) {
+    if (selectedPoolInfo?.asset === 'ETH') {
       return <CoinIcon />;
     }
+
+    if (selectedPoolInfo?.icon) {
+      return (
+        <ImageContainer>
+          <Image src={selectedPoolInfo.icon} alt={symbol} width={54} height={34} />
+        </ImageContainer>
+      );
+    }
+
     return (
       <ImageContainer>
-        <Image src={image} alt={symbol} width={54} height={34} />
+        <span style={{ width: '5.4rem', height: '5.4rem', backgroundColor: 'transparent' }}></span>
       </ImageContainer>
     );
-  }, [chainId, image, symbol]);
+  }, [selectedPoolInfo?.asset, selectedPoolInfo?.icon, symbol]);
 
   useEffect(() => {
     const result = calculateInitialDeposit(parseUnits(inputAmount, decimals), vettingFeeBPS);

@@ -4,7 +4,6 @@ import { ChangeEvent, FocusEventHandler, useCallback, useMemo, useState } from '
 import Image from 'next/image';
 import { Box, Button, CircularProgress, FormControl, SelectChangeEvent, Stack, styled, TextField } from '@mui/material';
 import { Address, formatUnits, getAddress, isAddress, parseUnits } from 'viem';
-import { mainnet, sepolia } from 'viem/chains';
 import { CoinIcon, ImageContainer, InputContainer, ModalContainer, ModalTitle } from '~/containers/Modals/Deposit';
 import {
   useChainContext,
@@ -29,7 +28,6 @@ export const WithdrawForm = () => {
   const { addNotification } = useNotifications();
 
   const {
-    chain: { image },
     balanceBN: { symbol, decimals: balanceDecimals },
     selectedPoolInfo,
     chainId,
@@ -177,16 +175,25 @@ export const WithdrawForm = () => {
     }
   }, [quoteCommitment, countdown, setFeeCommitment, setModalOpen, addNotification, feeBPS, setFeeBPSForWithdraw]);
 
-  const chainIcon = useMemo(() => {
-    if (chainId === sepolia.id || chainId === mainnet.id) {
+  const assetIcon = useMemo(() => {
+    if (selectedPoolInfo?.asset === 'ETH') {
       return <CoinIcon />;
     }
+
+    if (selectedPoolInfo?.icon) {
+      return (
+        <ImageContainer>
+          <Image src={selectedPoolInfo.icon} alt={symbol} width={54} height={34} />
+        </ImageContainer>
+      );
+    }
+
     return (
       <ImageContainer>
-        <Image src={image} alt={symbol} width={54} height={34} />
+        <span style={{ width: '5.4rem', height: '5.4rem', backgroundColor: 'transparent' }}></span>
       </ImageContainer>
     );
-  }, [chainId, image, symbol]);
+  }, [selectedPoolInfo?.asset, selectedPoolInfo?.icon, symbol]);
 
   return (
     <ModalContainer>
@@ -204,7 +211,7 @@ export const WithdrawForm = () => {
           symbol={symbol}
           poolAccountName={poolAccount?.name?.toString()}
           balanceUSD={balanceUSD}
-          chainIcon={chainIcon}
+          chainIcon={assetIcon}
         />
       </InputContainer>
 

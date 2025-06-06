@@ -23,6 +23,7 @@ export interface PoolInfo {
   maxDeposit: bigint;
   asset: ChainAssets;
   assetDecimals?: number;
+  icon?: string;
 }
 
 export interface ChainData {
@@ -66,6 +67,7 @@ const mainnetChainData: ChainData = {
         maxDeposit: parseEther('10000'),
         asset: 'ETH',
         assetDecimals: 18,
+        icon: mainnetIcon.src,
       },
     ],
   },
@@ -97,6 +99,7 @@ const testnetChainData: ChainData = {
         maxDeposit: parseEther('1'),
         asset: 'ETH',
         assetDecimals: 18,
+        icon: mainnetIcon.src,
       },
       {
         chainId: sepolia.id,
