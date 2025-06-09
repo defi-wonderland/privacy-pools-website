@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Address, createPublicClient, getAddress, Hex, http } from 'viem';
 import { whitelistedChains } from '~/config';
@@ -84,6 +84,7 @@ export const PoolAccountsProvider = ({ children }: Props) => {
   const resetInputs = () => {
     setAmount('');
     setTarget('');
+    setPoolAccount(undefined);
   };
 
   const resetTransactionState = () => {
@@ -95,6 +96,13 @@ export const PoolAccountsProvider = ({ children }: Props) => {
     setFeeCommitment(null);
     setFeeBPSForWithdraw(BigInt(0));
   };
+
+  // Reset form inputs when asset/chain changes
+  useEffect(() => {
+    setAmount('');
+    setTarget('');
+    setPoolAccount(undefined);
+  }, [selectedPoolInfo.assetAddress, selectedPoolInfo.chainId]);
 
   const { data: assetConfigs, isLoading: isAssetConfigLoading } = useQuery({
     queryKey: ['assetConfigs', chainId, selectedPoolInfo.scope.toString()],

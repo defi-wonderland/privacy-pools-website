@@ -1,19 +1,18 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import Image from 'next/image';
 import { FormControl, MenuItem, Select, styled, SelectChangeEvent } from '@mui/material';
 import { ChainAssets } from '~/config';
 import { useChainContext } from '~/hooks/context/useChainContext';
-import { EtherIcon } from '~/assets/coins/ether';
 
 export interface Option {
   value: ChainAssets;
   label: string;
-  icon?: React.ReactNode;
 }
 
-const DEFAULT_TOKEN_OPTIONS: Option[] = [
-  { value: 'ETH', label: 'ETH', icon: <EtherIcon /> },
+const ALL_TOKEN_OPTIONS: Option[] = [
+  { value: 'ETH', label: 'ETH' },
   { value: 'USDC', label: 'USDC' },
 ];
 
@@ -27,13 +26,25 @@ const MENU_STYLING = {
   },
 };
 
-export interface AssetSelectProps {
-  value?: string;
-  options?: Option[];
-}
+export const AssetSelect: React.FC = () => {
+  const { selectedAsset, setSelectedAsset, chain } = useChainContext();
 
-export const AssetSelect: React.FC<AssetSelectProps> = ({ options = DEFAULT_TOKEN_OPTIONS }) => {
-  const { selectedAsset, setSelectedAsset } = useChainContext();
+  const supportedAssets = useMemo(() => {
+    return [...new Set(chain.poolInfo.map((pool) => pool.asset))];
+  }, [chain.poolInfo]);
+
+  const filteredTokenOptions = useMemo(() => {
+    return ALL_TOKEN_OPTIONS.filter((option) => supportedAssets.includes(option.value));
+  }, [supportedAssets]);
+
+  const getAssetIcon = (asset: ChainAssets) => {
+    const poolWithAsset = chain.poolInfo.find((pool) => pool.asset === asset);
+    return poolWithAsset?.icon ? (
+      <Image src={poolWithAsset.icon} alt={asset} width={20} height={20} style={{ width: '100%', height: '100%' }} />
+    ) : null;
+  };
+
+  const tokenOptions = filteredTokenOptions;
 
   const handleChange = (event: SelectChangeEvent<unknown>) => {
     setSelectedAsset(event.target.value as ChainAssets);
@@ -42,14 +53,17 @@ export const AssetSelect: React.FC<AssetSelectProps> = ({ options = DEFAULT_TOKE
   return (
     <FormControl fullWidth>
       <StyledSelect value={selectedAsset} onChange={handleChange} variant='outlined' MenuProps={MENU_STYLING}>
-        {options?.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
-            <MenuItemContent>
-              {option.icon && <IconWrapper>{option.icon}</IconWrapper>}
-              <span>{option.label}</span>
-            </MenuItemContent>
-          </MenuItem>
-        ))}
+        {tokenOptions?.map((option) => {
+          const icon = getAssetIcon(option.value);
+          return (
+            <MenuItem key={option.value} value={option.value}>
+              <MenuItemContent>
+                {icon && <IconWrapper>{icon}</IconWrapper>}
+                <span>{option.label}</span>
+              </MenuItemContent>
+            </MenuItem>
+          );
+        })}
       </StyledSelect>
     </FormControl>
   );

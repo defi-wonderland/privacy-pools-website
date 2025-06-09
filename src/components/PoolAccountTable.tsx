@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, MouseEvent, useEffect } from 'react';
+import { useState, MouseEvent, useEffect, useMemo } from 'react';
 import { OverflowMenuVertical } from '@carbon/icons-react';
 import {
   styled,
@@ -37,6 +37,8 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const { setSelectedHistoryData } = usePoolAccountsContext();
 
   useEffect(() => {
     if (isLoading || !records.length) {
@@ -77,6 +79,15 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
     const foundAccount = poolAccounts.find((pa) => pa.label === poolAccount.label);
     if (!foundAccount) return;
 
+    setSelectedHistoryData({
+      type: EventType.DEPOSIT,
+      amount: poolAccount.deposit.value,
+      txHash: poolAccount.deposit.txHash,
+      timestamp: poolAccount.deposit.timestamp ? parseInt(poolAccount.deposit.timestamp.toString()) : 0,
+      reviewStatus: poolAccount.reviewStatus,
+      label: poolAccount.label,
+      scope: poolAccount.scope,
+    });
     setPoolAccount(foundAccount);
     setModalOpen(ModalType.PA_DETAILS);
     handleClose();
@@ -85,6 +96,13 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
   const handleClose = () => {
     setAnchorEl(Array(poolAccounts.length).fill(null));
   };
+
+  const getRowReviewStatus = useMemo(
+    () => (row: PoolAccount) => {
+      return row.reviewStatus === ReviewStatus.APPROVED && row.balance === 0n ? ReviewStatus.SPENT : row.reviewStatus;
+    },
+    [],
+  );
 
   const getExitHandler = (row: PoolAccount) => {
     return row.balance !== 0n ? () => handleExit(row) : undefined;
@@ -141,11 +159,11 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
 
                   <STableCell sx={{ paddingRight: mobile ? 0 : '1rem', textAlign: 'left' }}>
                     <Tooltip
-                      title={row.reviewStatus === ReviewStatus.PENDING ? statusMessage : ''}
+                      title={getRowReviewStatus(row) === ReviewStatus.PENDING ? statusMessage : ''}
                       placement='top'
                       disableInteractive
                     >
-                      <StatusChip status={row.reviewStatus} compact={mobile} />
+                      <StatusChip status={getRowReviewStatus(row)} compact={mobile} />
                     </Tooltip>
                   </STableCell>
 

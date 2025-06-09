@@ -134,7 +134,7 @@ export const AccountProvider = ({ children }: Props) => {
 
         return {
           ...entry,
-          reviewStatus: TEST_MODE ? ReviewStatus.APPROVED : isWithdrawn ? ReviewStatus.WITHDRAWN : reviewStatus,
+          reviewStatus: TEST_MODE ? ReviewStatus.APPROVED : isWithdrawn ? ReviewStatus.SPENT : reviewStatus,
           isValid: reviewStatus === ReviewStatus.APPROVED, // Could be removed due reviewStatus is pending till leaves are updated
           timestamp: deposit.timestamp,
         };

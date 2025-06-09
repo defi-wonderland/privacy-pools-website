@@ -92,7 +92,7 @@ export const PoolAccountsPreview = () => {
                 </ViewAllButton>
               )}
 
-              {isAuthorized && (
+              {isAuthorized && previewPoolAccounts.length > 0 && (
                 <ViewAllButton
                   onClick={handleNavigateToPoolAccounts}
                   disabled={poolsByAssetAndChain && !poolsByAssetAndChain.length}
