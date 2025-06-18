@@ -9,7 +9,7 @@ test.beforeEach('open start URL and connect wallet', async ({ page, metamask }) 
     await metamask.connectToDapp();
 });
 
-test.only('logged in user without account', async ({ page }) => {
+test('shows dashboard for logged user without account', async ({ page }) => {
     await page.locator('button:right-of(:text("Welcome to Privacy Pools"))').first().click();
     await page.getByRole('button', { name: 'Personal' }).click();
 
