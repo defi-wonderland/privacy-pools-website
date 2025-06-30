@@ -14,19 +14,17 @@ test.describe('Deposit Flow', () => {
             tag: '@smoke'
         }, async ({ page, depositPage, metamask }) => {
             test.slow();
-            const depositAmount = '0.01';
-            await depositPage.deposit(depositAmount);
+            await depositPage.deposit('0.01');
             await metamask.confirmTransaction();
-
             await page.getByText('Processing the deposit').waitFor({ state: 'hidden' });
             await expect(page.getByTestId('success-title')).toBeVisible();
+            await expect(page.getByText('You deposited')).toBeVisible();
         });
 
         test('should use "Use Max" button to set maximum deposit amount', async ({ page }) => {
             const maxAmount = '1';
             await page.getByTestId('deposit-button').click();
             await page.getByRole('button', { name: 'Use Max' }).click();
-
             // Input should be populated with maximum amount
             const inputValue = await page.getByTestId('deposit-input').getByRole('textbox').inputValue();
             expect(inputValue).toEqual(maxAmount);
@@ -71,8 +69,7 @@ test.describe('Deposit Flow', () => {
     test.describe('Cancel deposit', () => {
         test('should show toast notification when user rejects transaction', async ({ page, metamask, depositPage }) => {
             test.slow();
-            const depositAmount = '0.01';
-            await depositPage.deposit(depositAmount);
+            await depositPage.deposit('0.01');
             await metamask.rejectTransaction();
             await expect(page.getByText('User rejected the request')).toBeVisible();
         });
