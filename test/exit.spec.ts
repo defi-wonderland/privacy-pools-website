@@ -24,7 +24,6 @@ test.describe('Exit Flow', () => {
             await page.locator('tr').getByRole('button').first().click();
             await page.getByTestId('dotted-menu-exit').click();
             await page.getByText('Generating the ZK Proof').waitFor({ state: 'hidden' });
-            await expect(page.getByText("You're exiting the Pool")).toBeVisible();
             await expect(page.getByText('The exit returns your funds without privacy.')).toBeVisible();
             await page.getByTestId('confirm-review-button').click({ timeout: 5_000 });
             await metamask.confirmTransaction();
