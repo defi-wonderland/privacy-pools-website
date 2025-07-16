@@ -21,11 +21,9 @@ export class DepositPage {
     async deposit(amount: string) {
         await this.depositBtn.waitFor({ state: 'visible' });
         await this.depositBtn.click();
-
         await this.depositInput.fill(amount);
         await this.confirmDepositBtn.click();
         await this.confirmReviewBtn.click();
-
         await this.metamask.approveSwitchNetwork();
         await this.page.waitForTimeout(4000);
     }
