@@ -9,6 +9,13 @@ export class LoginPage {
     readonly createOrLoadBtn: Locator;
     readonly importAccountBtn: Locator;
     readonly loadAccountBtn: Locator;
+    readonly copyRecoveryPhraseBtn: Locator;
+    readonly continueToVerificationBtn: Locator;
+    readonly verifyBtn: Locator;
+    readonly saveRecoveryPhraseCheckbox: Locator;
+    readonly createAccountBtn: Locator;
+    readonly returnToDashboardBtn: Locator;
+    readonly createAccountAfterVerificationBtn: Locator;
 
     constructor(page: Page, metamask: MetaMask) {
         this.page = page;
@@ -18,6 +25,13 @@ export class LoginPage {
         this.createOrLoadBtn = page.getByText('Create or Load');
         this.importAccountBtn = page.getByTestId('import-account');
         this.loadAccountBtn = page.getByTestId('load-account-button');
+        this.copyRecoveryPhraseBtn = page.getByRole('button', { name: 'Copy Recovery Phrase' });
+        this.continueToVerificationBtn = page.getByRole('button', { name: 'Continue to Verification' });
+        this.verifyBtn = page.getByRole('button', { name: 'Verify' });
+        this.saveRecoveryPhraseCheckbox = page.getByTestId('save-recovery-phrase').getByRole('checkbox');
+        this.createAccountBtn = page.getByTestId('create-account');
+        this.createAccountAfterVerificationBtn = page.getByTestId('create-account-button');
+        this.returnToDashboardBtn = page.getByTestId('return-to-dashboard-button');
     }
 
     async connectWallet() {
@@ -28,7 +42,6 @@ export class LoginPage {
 
     async loadAccount(recoveryPhrase: string) {
         const wordList = recoveryPhrase.split(" ");
-        await this.createOrLoadBtn.click();
         await this.importAccountBtn.click();
 
         for (const [index, word] of wordList.entries()) {
