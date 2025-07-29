@@ -6,6 +6,7 @@ test.describe('Exit Flow', () => {
     test.beforeEach('open start URL and connect wallet', async ({ page, loginPage }) => {
         const recoveryPhrase = process.env.RECOVERY_PHRASE_EXIT || '';
         await page.goto('/');
+        await loginPage.connectWallet();
         await loginPage.loadAccount(recoveryPhrase);
     });
 

@@ -20,19 +20,20 @@ export class LoginPage {
         this.loadAccountBtn = page.getByTestId('load-account-button');
     }
 
-    async loadAccount(recoveryPhrase: string) {
-        const wordList = recoveryPhrase.split(" ");
-
+    async connectWallet() {
         await this.connectWalletBtn.click();
         await this.metamaskOptionBtn.click();
         await this.metamask.connectToDapp(['Account 1', 'Account 2']);
+    }
+
+    async loadAccount(recoveryPhrase: string) {
+        const wordList = recoveryPhrase.split(" ");
         await this.createOrLoadBtn.click();
         await this.importAccountBtn.click();
 
         for (const [index, word] of wordList.entries()) {
             await this.page.getByRole('textbox').nth(index).fill(word);
         }
-
         await this.loadAccountBtn.click();
     }
 }

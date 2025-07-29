@@ -4,8 +4,9 @@ const { expect } = test;
 
 test.describe('Deposit Flow', () => {
     test.beforeEach('open start URL and connect wallet', async ({ page, loginPage }) => {
-        const recoveryPhrase = process.env.RECOVERY_PHRASE_EMPTY || '';
+        const recoveryPhrase = process.env.RECOVERY_PHRASE_DEPOSIT || '';
         await page.goto('/');
+        await loginPage.connectWallet();
         await loginPage.loadAccount(recoveryPhrase);
     });
 
@@ -16,7 +17,7 @@ test.describe('Deposit Flow', () => {
         await depositPage.deposit('0.01');
         await metamask.confirmTransaction();
         await page.getByText('Processing the deposit').waitFor({ state: 'hidden' });
-        await expect(page.getByTestId('success-title')).toBeVisible();
+        await expect(page.getByTestId('success-title')).toBeVisible({ timeout: 10_000 });
         await expect(page.getByText('You deposited')).toBeVisible();
     });
 

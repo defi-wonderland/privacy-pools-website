@@ -4,8 +4,9 @@ const { expect } = test;
 
 test.describe('Withdrawal Flow', () => {
     test.beforeEach('open start URL and connect wallet', async ({ page, loginPage }) => {
-        const recoveryPhrase = process.env.RECOVERY_PHRASE_ALL_STATUSES || '';
+        const recoveryPhrase = process.env.RECOVERY_PHRASE_WITHDRAW || '';
         await page.goto('/');
+        await loginPage.connectWallet();
         await loginPage.loadAccount(recoveryPhrase);
     });
 

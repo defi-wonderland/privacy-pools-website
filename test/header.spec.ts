@@ -16,7 +16,6 @@ test('show hamburger menu', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 6 })).toContainText('ETH');
   await expect(page.getByRole('menuitem', { name: /^0x/ })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Logout' })).toBeVisible();
-  //await expect(page).toHaveScreenshot();
 })
 
 test('copy wallet address', async ({ page, metamask }) => {
@@ -35,7 +34,6 @@ test('logout', async ({ page }) => {
   await page.getByRole('menuitem', { name: 'Logout' }).click();
 
   await expect(page.getByTestId('connect-wallet-button')).toBeVisible();
-  //await expect(page).toHaveScreenshot();
 })
 
 test('show and hide disclaimer banner', async ({ page }) => {
