@@ -6,6 +6,7 @@ import { DepositPage } from '../pages/deposit-page';
 import { WithdrawPage } from '../pages/withdraw-page';
 import { ExitPage } from '../pages/exit-page';
 import { DashboardPage } from '../pages/dashboard-page';
+import { HeaderPage } from '../pages/header-page';
 
 export const testWithMetaMask = testWithSynpress(metaMaskFixtures(basicSetup)).extend<{
     metamask: MetaMask
@@ -14,6 +15,7 @@ export const testWithMetaMask = testWithSynpress(metaMaskFixtures(basicSetup)).e
     withdrawPage: WithdrawPage
     exitPage: ExitPage
     dashboardPage: DashboardPage
+    headerPage: HeaderPage
 }>({
     metamask: async ({ context, metamaskPage, extensionId }, use) => {
         const metamask = new MetaMask(
@@ -43,5 +45,9 @@ export const testWithMetaMask = testWithSynpress(metaMaskFixtures(basicSetup)).e
     dashboardPage: async ({ page }, use) => {
         const dashboardPage = new DashboardPage(page);
         await use(dashboardPage)
+    },
+    headerPage: async ({ page }, use) => {
+        const headerPage = new HeaderPage(page);
+        await use(headerPage)
     }
 })
