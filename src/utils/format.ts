@@ -3,6 +3,7 @@ import { decodeEventLog, parseAbiItem, TransactionReceipt } from 'viem';
 
 export const truncateAddress = (address?: string) => {
   if (!address) return '';
+  if (address.length <= 10) return address;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
@@ -22,13 +23,21 @@ export const formatTimestamp = (timestamp?: string, full?: boolean): string => {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
 
-  const timezone = date.getTimezoneOffset();
-  const timezoneSign = timezone > 0 ? '+' : '-';
-  const timezoneOffset = Math.abs(timezone);
-  const timezoneOffsetHours = Math.floor(timezoneOffset / 60);
+  const rawOffsetMinutes = date.getTimezoneOffset();
+
+  let offsetString = '';
+  if (full) {
+    if (rawOffsetMinutes === 0) {
+      offsetString = 'UTC';
+    } else {
+      const offsetSign = rawOffsetMinutes > 0 ? '-' : '+';
+      const offsetHours = Math.abs(rawOffsetMinutes / 60);
+      offsetString = `UTC${offsetSign}${offsetHours}`;
+    }
+  }
 
   return full
-    ? `${day}/${month}/${year} ${hours}:${minutes} UTC${timezoneSign}${timezoneOffsetHours}`
+    ? `${day}/${month}/${year} ${hours}:${minutes} ${offsetString}`
     : `${day}/${month}/${year} ${hours}:${minutes}`;
 };
 
