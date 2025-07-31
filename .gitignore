@@ -52,3 +52,6 @@ cypress/downloads
 
 # Synpress
 .cache-synpress
+# Sentry Config File
+.env.sentry-build-plugin
+src/app/sentry-example-page/

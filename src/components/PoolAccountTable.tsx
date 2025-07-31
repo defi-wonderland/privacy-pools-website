@@ -22,7 +22,7 @@ import { DottedMenu, ExtendedTooltip as Tooltip, StatusChip } from '~/components
 import { getConstants } from '~/config/constants';
 import { usePoolAccountsContext, useModal, useChainContext, useAccountContext } from '~/hooks';
 import { EventType, ModalType, PoolAccount, ReviewStatus } from '~/types';
-import { formatDataNumber, formatTimestamp } from '~/utils';
+import { formatDataNumber, formatTimestamp, getStatus } from '~/utils';
 
 export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
   const { PENDING_STATUS_MESSAGE: statusMessage } = getConstants();
@@ -99,7 +99,8 @@ export const PoolAccountTable = ({ records }: { records: PoolAccount[] }) => {
 
   const getRowReviewStatus = useMemo(
     () => (row: PoolAccount) => {
-      return row.reviewStatus === ReviewStatus.APPROVED && row.balance === 0n ? ReviewStatus.SPENT : row.reviewStatus;
+      const reviewStatus = getStatus(row);
+      return reviewStatus === ReviewStatus.APPROVED && row.balance === 0n ? ReviewStatus.SPENT : reviewStatus;
     },
     [],
   );

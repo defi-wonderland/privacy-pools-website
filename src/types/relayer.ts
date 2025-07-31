@@ -40,6 +40,10 @@ export interface RelayRequestBody {
 export type FeesResponse = {
   feeBPS: string;
   feeReceiverAddress: string;
+  chainId: number;
+  assetAddress: string;
+  minWithdrawAmount: string;
+  maxGasPrice: string;
 };
 
 /**
@@ -70,6 +74,8 @@ export type QuoteRequestBody = {
   asset: string;
   /** The recipient address for the withdrawal. */
   recipient: string;
+  /** Whether to include native token drop for gas fees (optional, defaults to false). */
+  extraGas?: boolean;
 };
 
 /**
@@ -83,6 +89,30 @@ export type FeeCommitment = {
   withdrawalData: string;
   /** Relayer's signature committing to the fee and withdrawal data (hex string). */
   signedRelayerCommitment: string;
+  /** Whether native token drop for gas fees is enabled (optional). */
+  extraGas?: boolean;
+};
+
+/**
+ * Represents the detailed breakdown of transaction costs.
+ */
+export type TransactionCostDetail = {
+  /** Gas units required for the transaction. */
+  gas: string;
+  /** Cost in wei (ETH base units). */
+  eth: string;
+};
+
+/**
+ * Represents the detailed cost breakdown in the quote response.
+ */
+export type QuoteDetailBreakdown = {
+  /** Cost breakdown for the relay transaction. */
+  relayTxCost: TransactionCostDetail;
+  /** Amount of extra gas funding (only when extraGas is enabled). */
+  extraGasFundAmount?: TransactionCostDetail;
+  /** Cost breakdown for the extra gas transaction (only when extraGas is enabled). */
+  extraGasTxCost?: TransactionCostDetail;
 };
 
 /**
@@ -93,6 +123,10 @@ export type QuoteResponse = {
   baseFeeBPS: string;
   /** The dynamic fee rate adjusted for gas costs, in Basis Points (string representation). */
   feeBPS: string;
+  /** Current gas price used for calculations (in wei). */
+  gasPrice: string;
   /** The signed fee commitment from the relayer. */
   feeCommitment: FeeCommitment;
+  /** Detailed breakdown of costs and gas amounts. */
+  detail: QuoteDetailBreakdown;
 };

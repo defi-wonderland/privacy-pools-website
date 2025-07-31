@@ -11,20 +11,32 @@ import {
   Typography,
   IconButton,
   useTheme,
+  Avatar,
 } from '@mui/material';
 import { formatUnits } from 'viem';
-import { useAccount } from 'wagmi';
+import { useAccount, useEnsName, useEnsAvatar } from 'wagmi';
 import { useGoTo, useChainContext, useAuthContext } from '~/hooks';
-import { formatDataNumber, getUsdBalance, ROUTER, truncateAddress, zIndex } from '~/utils';
+import { formatDataNumber, getUsdBalance, ROUTER, truncateAddress, zIndex, useClipboard } from '~/utils';
 
 export const Menu = () => {
   const { address } = useAccount();
+
+  // ENS hooks for the connected user
+  const { data: ensName } = useEnsName({
+    address: address,
+    chainId: 1, // Always use mainnet for ENS
+  });
+
+  const { data: ensAvatar } = useEnsAvatar({
+    name: ensName || undefined,
+    chainId: 1, // Always use mainnet for ENS
+  });
   const {
     price,
     balanceBN: { value, symbol, decimals },
   } = useChainContext();
   const { logout } = useAuthContext();
-  const [copied, setCopied] = useState(false);
+  const { copied, copyToClipboard } = useClipboard({ timeout: 1400 });
   const theme = useTheme();
 
   const ethBalanceBN = value.toString() ?? '0';
@@ -59,12 +71,9 @@ export const Menu = () => {
   };
 
   const handleCopyAddress = () => {
-    navigator.clipboard.writeText(address!);
-    setCopied(true);
-
-    setTimeout(() => {
-      setCopied(false);
-    }, 1400);
+    if (address) {
+      copyToClipboard(address);
+    }
   };
 
   return (
@@ -91,9 +100,9 @@ export const Menu = () => {
 
         <SMenuItem onClick={handleCopyAddress}>
           <ListItemIcon>
-            <Wallet size={16} />
+            {ensAvatar ? <Avatar src={ensAvatar} sx={{ width: 16, height: 16 }} /> : <Wallet size={16} />}
           </ListItemIcon>
-          {truncateAddress(address!)}
+          {ensName || truncateAddress(address!)}
 
           {copied ? (
             <Checkmark size={16} color={theme.palette.text.disabled} />

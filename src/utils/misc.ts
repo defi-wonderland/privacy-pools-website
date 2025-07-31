@@ -1,5 +1,6 @@
 import { formatUnits, parseUnits, PublicClient } from 'viem';
 import { CreateConnectorFn, Connector } from 'wagmi';
+import { EventType, ReviewStatus, StatusObject } from '~/types';
 
 export const getUsdBalance = (price: number | null, balance: string, decimals: number): string => {
   if (!price || !balance || !decimals) return '0';
@@ -101,4 +102,24 @@ export const calculateRemainingTime = (expiration: number | undefined): number =
   const now = Date.now();
   const remaining = expiration - now;
   return Math.max(0, Math.floor(remaining / 1000));
+};
+
+/**
+ * Extract status from reviewStatus field, handling both direct ReviewStatus values and StatusObject
+ * @param row Activity record with reviewStatus field
+ * @returns ReviewStatus value
+ */
+export const getStatus = (row: { type?: EventType; reviewStatus?: ReviewStatus | StatusObject }): ReviewStatus => {
+  if (row.type === EventType.WITHDRAWAL) {
+    return ReviewStatus.APPROVED;
+  }
+
+  // Handle case where reviewStatus is an object
+  if (typeof row.reviewStatus === 'object' && row.reviewStatus !== null) {
+    // Try to extract the actual status from the object
+    const statusObj = row.reviewStatus as StatusObject;
+    return statusObj.decisionStatus || statusObj.reviewStatus || statusObj.status || ReviewStatus.PENDING;
+  }
+
+  return row.reviewStatus || ReviewStatus.PENDING;
 };

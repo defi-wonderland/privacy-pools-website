@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { Address } from 'viem';
+import { useQuoteContext } from '~/contexts/QuoteContext';
 import { QuoteRequestBody, QuoteResponse, FeeCommitment } from '~/types';
 import { calculateRemainingTime } from '~/utils';
+
+let globalTimerInstanceActive = false;
 
 interface UseRequestQuoteParams {
   getQuote: (input: QuoteRequestBody) => Promise<QuoteResponse>;
@@ -25,10 +28,14 @@ interface UseRequestQuoteParams {
 interface UseRequestQuoteReturn {
   quoteCommitment: FeeCommitment | null;
   feeBPS: number | null;
+  baseFeeBPS: number | null;
+  extraGasAmountETH: string | null;
   isQuoteValid: boolean;
   countdown: number;
   isQuoteLoading: boolean;
   quoteError: Error | null;
+  isExpired: boolean;
+  requestNewQuote: () => Promise<void>;
 }
 
 export const useRequestQuote = ({
@@ -44,15 +51,22 @@ export const useRequestQuote = ({
   isRelayerSelected,
   addNotification,
 }: UseRequestQuoteParams): UseRequestQuoteReturn => {
-  const [quoteCommitment, setQuoteCommitment] = useState<FeeCommitment | null>(null);
-  const [feeBPS, setFeeBPS] = useState<number | null>(null);
-  const [countdown, setCountdown] = useState<number>(0);
+  const { quoteState, setQuoteData, updateCountdown, resetQuote, markAsExpired } = useQuoteContext();
+  const isFetchingRef = useRef(false);
+  const previousExtraGasRef = useRef(quoteState.extraGas);
+  const expiredNotificationSentRef = useRef<string | null>(null);
+  const timerIdRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const currentQuoteIdRef = useRef<string | null>(null);
 
-  const resetQuoteState = useCallback(() => {
-    setQuoteCommitment(null);
-    setFeeBPS(null);
-    setCountdown(0);
-  }, []);
+  const updateCountdownRef = useRef(updateCountdown);
+  const markAsExpiredRef = useRef(markAsExpired);
+  const addNotificationRef = useRef(addNotification);
+
+  useEffect(() => {
+    updateCountdownRef.current = updateCountdown;
+    markAsExpiredRef.current = markAsExpired;
+    addNotificationRef.current = addNotification;
+  }, [updateCountdown, markAsExpired, addNotification]);
 
   const canRequestQuote = useMemo(() => {
     return (
@@ -67,73 +81,162 @@ export const useRequestQuote = ({
   }, [isValidAmount, recipient, isRecipientAddressValid, isRelayerSelected, assetAddress, chainId, amountBN]);
 
   const executeFetchAndSetQuote = useCallback(async () => {
-    if (!canRequestQuote || !chainId || !assetAddress || !recipient) {
-      resetQuoteState();
+    if (!canRequestQuote || !chainId || !assetAddress || !recipient || isFetchingRef.current) {
       return;
     }
 
+    isFetchingRef.current = true;
     try {
-      resetQuoteState();
-
-      const quoteInput = { chainId, amount: amountBN.toString(), asset: assetAddress, recipient };
+      const quoteInput = {
+        chainId,
+        amount: amountBN.toString(),
+        asset: assetAddress,
+        recipient,
+        extraGas: quoteState.extraGas,
+      };
       const newQuoteData = await getQuote(quoteInput);
 
-      setQuoteCommitment(newQuoteData.feeCommitment);
-      setFeeBPS(Number(newQuoteData.feeBPS));
-      setCountdown(calculateRemainingTime(newQuoteData.feeCommitment.expiration));
+      const remainingTime = calculateRemainingTime(newQuoteData.feeCommitment.expiration);
+
+      expiredNotificationSentRef.current = null;
+
+      setQuoteData(
+        newQuoteData.feeCommitment,
+        Number(newQuoteData.feeBPS),
+        Number(newQuoteData.baseFeeBPS),
+        newQuoteData.detail?.extraGasFundAmount?.eth || null,
+        remainingTime,
+      );
     } catch (err) {
       const errorMessage = `Failed to get quote: ${err instanceof Error ? err.message : 'Unknown error'}`;
       console.error('executeFetchAndSetQuote error:', err);
       addNotification('error', errorMessage);
-      resetQuoteState();
+      resetQuote();
+    } finally {
+      isFetchingRef.current = false;
     }
-  }, [canRequestQuote, chainId, amountBN, assetAddress, recipient, getQuote, addNotification, resetQuoteState]);
+  }, [
+    canRequestQuote,
+    chainId,
+    amountBN,
+    assetAddress,
+    recipient,
+    quoteState.extraGas,
+    getQuote,
+    addNotification,
+    resetQuote,
+    setQuoteData,
+  ]);
 
   // Effect to fetch quote initially or when relevant inputs change
   useEffect(() => {
-    resetQuoteState();
-
-    if (canRequestQuote) {
+    if (canRequestQuote && !quoteState.quoteCommitment && !quoteState.isExpired) {
       executeFetchAndSetQuote();
+    } else if (!canRequestQuote) {
+      resetQuote();
     }
-  }, [canRequestQuote, executeFetchAndSetQuote, resetQuoteState]);
+  }, [canRequestQuote, executeFetchAndSetQuote, resetQuote, quoteState.quoteCommitment, quoteState.isExpired]);
 
-  // Effect to handle the countdown timer and refetch on expiry
+  // Effect to refetch quote when extraGas changes (only if we already have a quote)
   useEffect(() => {
-    let timerId: NodeJS.Timeout | undefined;
+    if (
+      canRequestQuote &&
+      quoteState.quoteCommitment &&
+      !quoteState.isExpired &&
+      previousExtraGasRef.current !== quoteState.extraGas
+    ) {
+      executeFetchAndSetQuote();
+      previousExtraGasRef.current = quoteState.extraGas;
+    }
+  }, [quoteState.extraGas, canRequestQuote, quoteState.quoteCommitment, quoteState.isExpired, executeFetchAndSetQuote]);
 
-    if (quoteCommitment && countdown > 0) {
-      timerId = setInterval(() => {
-        setCountdown((prevCountdown) => {
-          const newCountdown = prevCountdown - 1;
-          if (newCountdown <= 0) {
-            clearInterval(timerId);
-            if (canRequestQuote) {
-              executeFetchAndSetQuote();
-            } else {
-              console.log('Quote expired, but inputs are no longer valid. Clearing.');
-              resetQuoteState();
-            }
-            return 0;
-          }
-          return newCountdown;
-        });
-      }, 1000);
+  const startTimer = useCallback((quoteId: string, initialCountdown: number) => {
+    if (timerIdRef.current || globalTimerInstanceActive) {
+      return;
     }
 
-    return () => {
-      if (timerId) clearInterval(timerId);
-    };
-  }, [quoteCommitment, countdown, canRequestQuote, executeFetchAndSetQuote, resetQuoteState]);
+    globalTimerInstanceActive = true;
+    currentQuoteIdRef.current = quoteId;
+    let currentCountdown = initialCountdown;
 
-  const isQuoteValid = useMemo(() => quoteCommitment !== null && countdown > 0, [quoteCommitment, countdown]);
+    timerIdRef.current = setInterval(() => {
+      currentCountdown -= 1;
+      updateCountdownRef.current(currentCountdown);
+
+      if (currentCountdown <= 0) {
+        if (timerIdRef.current) {
+          clearInterval(timerIdRef.current);
+          timerIdRef.current = undefined;
+        }
+        globalTimerInstanceActive = false;
+
+        const alreadyNotified = expiredNotificationSentRef.current === quoteId;
+
+        if (quoteId && !alreadyNotified) {
+          expiredNotificationSentRef.current = quoteId;
+          markAsExpiredRef.current();
+          addNotificationRef.current('warning', 'Quote has expired. Please request a new quote.');
+        }
+
+        currentQuoteIdRef.current = null;
+      }
+    }, 1000);
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    if (timerIdRef.current) {
+      clearInterval(timerIdRef.current);
+      timerIdRef.current = undefined;
+    }
+    globalTimerInstanceActive = false;
+    currentQuoteIdRef.current = null;
+  }, []);
+
+  // effect to handle the countdown timer
+  useEffect(() => {
+    const currentQuoteId = quoteState.quoteCommitment?.signedRelayerCommitment || null;
+
+    if (
+      quoteState.quoteCommitment &&
+      quoteState.countdown > 0 &&
+      !quoteState.isExpired &&
+      currentQuoteId &&
+      currentQuoteId !== currentQuoteIdRef.current &&
+      !globalTimerInstanceActive
+    ) {
+      startTimer(currentQuoteId, quoteState.countdown);
+    }
+
+    if (!quoteState.quoteCommitment) {
+      stopTimer();
+    }
+
+    return stopTimer;
+  }, [quoteState.quoteCommitment?.signedRelayerCommitment, quoteState.isExpired]);
+
+  const isQuoteValid = useMemo(
+    () => quoteState.quoteCommitment !== null && quoteState.countdown > 0 && !quoteState.isExpired,
+    [quoteState.quoteCommitment, quoteState.countdown, quoteState.isExpired],
+  );
+
+  const requestNewQuote = useCallback(async () => {
+    isFetchingRef.current = false;
+    resetQuote();
+    if (canRequestQuote) {
+      await executeFetchAndSetQuote();
+    }
+  }, [canRequestQuote, executeFetchAndSetQuote, resetQuote]);
 
   return {
-    quoteCommitment,
-    feeBPS,
+    quoteCommitment: quoteState.quoteCommitment,
+    feeBPS: quoteState.feeBPS,
+    baseFeeBPS: quoteState.baseFeeBPS,
+    extraGasAmountETH: quoteState.extraGasAmountETH,
     isQuoteValid,
-    countdown,
+    countdown: quoteState.countdown,
     isQuoteLoading,
     quoteError,
+    isExpired: quoteState.isExpired,
+    requestNewQuote,
   };
 };

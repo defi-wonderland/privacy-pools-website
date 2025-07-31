@@ -15,7 +15,7 @@ export const zIndex = {
   ASIDE: 100,
   MODAL: 300,
   BACKDROP: -1,
-  TOAST: 500,
+  TOAST: 100500, //needed to be above sentry form chip
 };
 
 export const HEADER_HEIGHT = { default: 6, withDisclaimer: 10 }; // Header height in rem units

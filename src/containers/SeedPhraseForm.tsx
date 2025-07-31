@@ -16,6 +16,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { english, generateMnemonic } from 'viem/accounts';
+import { useClipboard } from '~/utils';
 
 const arrOfKeys = generateMnemonic(english).split(' '); // 12 words
 
@@ -34,7 +35,6 @@ export const SeedPhraseForm = ({
 }) => {
   const [isHidden, setIsHidden] = useState(true);
   const [splitSeedPhrase, setSplitSeedPhrase] = useState<string[]>([]);
-  const [isCopied, setIsCopied] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [verificationWords, setVerificationWords] = useState<{ index: number; word: string }[]>([]);
   const [verificationInputs, setVerificationInputs] = useState<string[]>([]);
@@ -42,27 +42,21 @@ export const SeedPhraseForm = ({
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { copied: isCopied, copyToClipboard: copyToClipboardUtil, readFromClipboard } = useClipboard({ timeout: 3000 });
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(seedPhrase);
-    setIsCopied(true);
-
-    setTimeout(() => {
-      setIsCopied(false);
-    }, 3000);
+    copyToClipboardUtil(seedPhrase);
   };
 
-  const pasteFromClipboard = useCallback(() => {
-    navigator.clipboard.readText().then((text) => {
-      const cleanedText = text.trim().replace(/\s+/g, ' ');
+  const pasteFromClipboard = useCallback(async () => {
+    const text = await readFromClipboard();
 
-      if (cleanedText === seedPhrase) return;
-
+    if (text && text !== seedPhrase) {
       setSplitSeedPhrase([]); // reset this state to avoid infinite loop
-      setSeedPhrase(cleanedText);
+      setSeedPhrase(text);
       setIsHidden(true);
-    });
-  }, [seedPhrase, setSeedPhrase]);
+    }
+  }, [seedPhrase, setSeedPhrase, readFromClipboard]);
 
   const changeSeedPhraseWord = (text: string, index: number) => {
     text = text.trim().replace(/\s+/g, ' ');

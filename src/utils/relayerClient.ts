@@ -42,7 +42,7 @@ const fetchClient: FetchClient = {
     const data = await response.json();
     return data;
   },
-  fetchQuote: async (relayerUrl: string, { chainId, amount, asset, recipient }: QuoteRequestBody) => {
+  fetchQuote: async (relayerUrl: string, { chainId, amount, asset, recipient, extraGas }: QuoteRequestBody) => {
     const response = await fetch(`${relayerUrl}/relayer/quote`, {
       method: 'POST',
       headers: {
@@ -54,6 +54,7 @@ const fetchClient: FetchClient = {
           amount,
           asset,
           recipient,
+          extraGas,
         },
         (_key, value) => (typeof value === 'bigint' ? value.toString() : value),
       ),

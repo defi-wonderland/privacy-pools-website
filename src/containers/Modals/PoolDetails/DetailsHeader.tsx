@@ -3,19 +3,22 @@ import { ExtendedTooltip as Tooltip, StatusChip } from '~/components';
 import { getConstants } from '~/config/constants';
 import { usePoolAccountsContext } from '~/hooks';
 import { ReviewStatus } from '~/types';
+import { getStatus } from '~/utils';
 import { ModalTitle } from '../Deposit/DepositForm';
 
 export const DetailsHeader = () => {
   const { PENDING_STATUS_MESSAGE } = getConstants();
   const { poolAccount } = usePoolAccountsContext();
-  const tooltipTitle = poolAccount?.reviewStatus === ReviewStatus.PENDING ? PENDING_STATUS_MESSAGE : '';
+
+  const status = getStatus(poolAccount || {});
+  const tooltipTitle = status === ReviewStatus.PENDING ? PENDING_STATUS_MESSAGE : '';
 
   return (
     <Container>
       <Stack direction='row' alignItems='center' gap='2.2rem'>
         <ModalTitle variant='h2'>{`PA-${poolAccount?.name}`}</ModalTitle>
         <Tooltip title={tooltipTitle} placement='top' disableInteractive>
-          <StatusChip status={poolAccount?.reviewStatus} />
+          <StatusChip status={status} />
         </Tooltip>
       </Stack>
 

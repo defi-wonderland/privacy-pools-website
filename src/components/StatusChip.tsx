@@ -1,22 +1,44 @@
 'use client';
 
 import { Box, styled } from '@mui/material';
-import { ReviewStatus } from '~/types';
+import { ReviewStatus, StatusObject } from '~/types';
+import { getStatus } from '~/utils';
 
 export const StatusChip = ({
   status = ReviewStatus.PENDING,
   compact = false,
   ...props
 }: {
-  status?: ReviewStatus;
+  status?: ReviewStatus | StatusObject;
   compact?: boolean;
-  props?: {
-    [key: string]: string | number | boolean;
-  };
-}) => {
+} & Record<string, unknown>) => {
+  // Handle case where status is an object with decisionStatus property
+  let statusValue: ReviewStatus;
+  let displayValue: string;
+
+  if (typeof status === 'object' && status !== null) {
+    // Use shared getStatus function to extract the actual status value
+    statusValue = getStatus({ reviewStatus: status });
+    displayValue = statusValue;
+
+    // Note: Object status format detected, extracting status value
+    console.debug('StatusChip received object format:', {
+      receivedObject: status,
+      extractedStatus: statusValue,
+      usingStatus: statusValue,
+    });
+  } else if (typeof status === 'string') {
+    statusValue = status as ReviewStatus;
+    displayValue = status;
+  } else {
+    statusValue = ReviewStatus.PENDING;
+    displayValue = ReviewStatus.PENDING;
+    console.warn('StatusChip received invalid status type:', typeof status, status);
+  }
+
   return (
-    <SStatusChip {...props} status={status} className={compact ? 'compact' : ''}>
-      {!compact && status}
+    <SStatusChip {...props} status={statusValue} className={compact ? 'compact' : ''}>
+      {!compact && displayValue}
     </SStatusChip>
   );
 };
@@ -38,6 +60,18 @@ export const SStatusChip = styled(Box, {
     },
   };
 
+  // Defensive programming: fallback to pending style if status not found
+  const statusStyle = statusColorMap[status];
+
+  if (!statusStyle) {
+    console.warn(
+      `StatusChip: Unknown status "${status}", falling back to pending style. Available statuses:`,
+      Object.keys(statusColorMap),
+    );
+  }
+
+  const finalStatusStyle = statusStyle || statusColorMap.pending;
+
   return {
     display: 'inline-block',
     textTransform: 'capitalize',
@@ -47,8 +81,8 @@ export const SStatusChip = styled(Box, {
     fontWeight: 500,
     color: theme.palette.text.primary,
     border: '1px solid',
-    borderColor: statusColorMap[status].main,
-    background: statusColorMap[status].light,
+    borderColor: finalStatusStyle.main,
+    background: finalStatusStyle.light,
     cursor: 'inherit',
 
     '&.compact': {

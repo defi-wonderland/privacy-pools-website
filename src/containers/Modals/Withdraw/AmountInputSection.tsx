@@ -6,7 +6,7 @@ import { AmountInput, MaxButton } from '~/containers/Modals/Deposit';
 
 interface AmountInputSectionProps {
   amount: string;
-  errorMessage: string;
+  errorMessage: string | ReactNode;
   handleAmountChange: (e: ChangeEvent<HTMLInputElement>) => void;
   handleUseMax: () => void;
   balanceFormatted: string;

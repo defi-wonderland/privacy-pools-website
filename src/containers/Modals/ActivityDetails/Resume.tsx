@@ -4,8 +4,8 @@ import { formatUnits } from 'viem';
 import { ExtendedTooltip as Tooltip, StatusChip } from '~/components';
 import { getConstants } from '~/config/constants';
 import { useAccountContext, usePoolAccountsContext, useChainContext } from '~/hooks';
-import { EventType, ReviewStatus } from '~/types';
-import { getUsdBalance } from '~/utils';
+import { ReviewStatus } from '~/types';
+import { getUsdBalance, getStatus } from '~/utils';
 
 export const Resume = () => {
   const { PENDING_STATUS_MESSAGE } = getConstants();
@@ -26,10 +26,8 @@ export const Resume = () => {
     return name ? `PA-${name}` : 'Unknown Pool Account';
   }, [poolAccounts, selectedHistoryData]);
 
-  const tooltipTitle = selectedHistoryData?.reviewStatus === ReviewStatus.PENDING ? PENDING_STATUS_MESSAGE : '';
-
-  const status =
-    selectedHistoryData?.type === EventType.WITHDRAWAL ? ReviewStatus.APPROVED : selectedHistoryData?.reviewStatus;
+  const status = getStatus(selectedHistoryData || {});
+  const tooltipTitle = status === ReviewStatus.PENDING ? PENDING_STATUS_MESSAGE : '';
 
   return (
     <Stack direction='row' justifyContent='space-between' alignItems='start' width='100%'>

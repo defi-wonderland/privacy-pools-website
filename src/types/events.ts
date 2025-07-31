@@ -48,3 +48,16 @@ export type WithdrawalEvent = Event & {
   recordIndex: number | null;
   publicAmount: string | null;
 };
+
+export type StatusObject = {
+  id?: string;
+  decisionStatus?: ReviewStatus;
+  reviewStatus?: ReviewStatus;
+  status?: ReviewStatus;
+  reason?: string;
+  processed?: boolean;
+  createdAt?: string;
+  adminId?: string;
+  depositId?: string;
+  [key: string]: string | boolean | ReviewStatus | undefined;
+};

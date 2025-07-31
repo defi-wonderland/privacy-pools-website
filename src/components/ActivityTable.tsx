@@ -12,8 +12,8 @@ import {
 } from '~/components';
 import { getConfig } from '~/config';
 import { usePoolAccountsContext, useModal, useChainContext, useAccountContext } from '~/hooks';
-import { ActivityRecords, EventType, HistoryData, ModalType, ReviewStatus } from '~/types';
-import { formatDataNumber, getTimeAgo } from '~/utils';
+import { ActivityRecords, HistoryData, ModalType, ReviewStatus } from '~/types';
+import { formatDataNumber, getTimeAgo, getStatus } from '~/utils';
 
 const {
   constants: { ITEMS_PER_PAGE, PENDING_STATUS_MESSAGE },
@@ -59,13 +59,6 @@ export const ActivityTable = ({
   const handleDetails = (row: HistoryData[number]) => {
     setSelectedHistoryData(row);
     setModalOpen(ModalType.ACTIVITY_DETAILS);
-  };
-
-  const getStatus = (row: ActivityRecords[number]) => {
-    if (row.type === EventType.WITHDRAWAL) {
-      return ReviewStatus.APPROVED;
-    }
-    return row.reviewStatus;
   };
 
   const isPersonalEvents = view === 'personal';

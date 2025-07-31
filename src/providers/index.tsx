@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
+import { QuoteProvider } from '~/contexts/QuoteContext';
 import { AccountProvider } from './AccountProvider';
 import { AuthProvider } from './AuthProvider';
 import { ChainProvider } from './ChainProvider';
+import { CircuitProvider } from './CircuitProvider';
 import { ModalProvider } from './ModalProvider';
 import { NotificationProvider } from './NotificationProvider';
 import { PoolAccountsProvider } from './PoolAccountsProvider';
@@ -16,17 +18,21 @@ export const Providers = ({ children }: Props) => {
   return (
     <ThemeProvider>
       <NotificationProvider>
-        <WalletProvider>
-          <ChainProvider>
-            <PoolAccountsProvider>
-              <AccountProvider>
-                <AuthProvider>
-                  <ModalProvider>{children}</ModalProvider>
-                </AuthProvider>
-              </AccountProvider>
-            </PoolAccountsProvider>
-          </ChainProvider>
-        </WalletProvider>
+        <CircuitProvider>
+          <WalletProvider>
+            <ChainProvider>
+              <PoolAccountsProvider>
+                <AccountProvider>
+                  <AuthProvider>
+                    <QuoteProvider>
+                      <ModalProvider>{children}</ModalProvider>
+                    </QuoteProvider>
+                  </AuthProvider>
+                </AccountProvider>
+              </PoolAccountsProvider>
+            </ChainProvider>
+          </WalletProvider>
+        </CircuitProvider>
       </NotificationProvider>
     </ThemeProvider>
   );
