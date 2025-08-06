@@ -1,0 +1,2 @@
+src/__tests__/__mocks__/**
+src/config/chainData.ts
